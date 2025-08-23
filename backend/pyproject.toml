@@ -12,6 +12,8 @@ psycopg = {extras = ["binary"], version = "^3.2.9"}
 scikit-learn = "^1.7.1"
 pandas = "^2.3.2"
 datasets = "^4.0.0"
+matplotlib = "^3.10.5"
+seaborn = "^0.13.2"
 
 
 [build-system]
