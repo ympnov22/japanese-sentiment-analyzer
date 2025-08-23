@@ -37,10 +37,10 @@
     "metadata": "models/japanese_sentiment_model_ultra_metadata.json"
   },
   "file_sizes_mb": {
-    "vectorizer": 0.0003261566162109375,
+    "vectorizer": 0.00032520294189453125,
     "classifier": 0.777470588684082,
-    "total": 0.777796745300293
+    "total": 0.7777957916259766
   },
   "confusion_matrix_plot": "models/ultra_lightweight_confusion_matrix.png",
-  "evaluation_time": "2025-08-23T20:32:33.340408"
+  "evaluation_time": "2025-08-23T20:45:13.210733"
 }
