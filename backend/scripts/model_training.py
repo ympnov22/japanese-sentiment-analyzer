@@ -40,18 +40,18 @@ class JapaneseSentimentModel:
         self.label_to_index = {label: idx for idx, label in enumerate(self.sentiment_labels)}
         self.index_to_label = {idx: label for idx, label in enumerate(self.sentiment_labels)}
     
-    def create_tfidf_vectorizer(self, max_features=10000, ngram_range=(1, 2)):
+    def create_tfidf_vectorizer(self, max_features=30000, ngram_range=(1, 2)):
         """
-        Create and configure TF-IDF vectorizer for Japanese text
+        Create and configure TF-IDF vectorizer for Japanese text (Classic-lite configuration)
         
         Args:
-            max_features (int): Maximum number of features
+            max_features (int): Maximum number of features (default: 30000 for memory optimization)
             ngram_range (tuple): N-gram range for feature extraction
             
         Returns:
             TfidfVectorizer: Configured vectorizer
         """
-        print(f"Creating TF-IDF vectorizer with max_features={max_features}, ngram_range={ngram_range}")
+        print(f"Creating lightweight TF-IDF vectorizer with max_features={max_features}, ngram_range={ngram_range}")
         
         self.vectorizer = TfidfVectorizer(
             max_features=max_features,
@@ -61,14 +61,14 @@ class JapaneseSentimentModel:
             token_pattern=r'(?u)\b\w+\b',  # Basic tokenization
             min_df=2,  # Ignore terms that appear in less than 2 documents
             max_df=0.95,  # Ignore terms that appear in more than 95% of documents
-            sublinear_tf=True  # Apply sublinear tf scaling
+            sublinear_tf=True  # Apply sublinear tf scaling for memory efficiency
         )
         
         return self.vectorizer
     
     def create_classifier(self, random_state=42):
         """
-        Create and configure Logistic Regression classifier
+        Create and configure Logistic Regression classifier (optimized for memory)
         
         Args:
             random_state (int): Random state for reproducibility
@@ -76,12 +76,12 @@ class JapaneseSentimentModel:
         Returns:
             LogisticRegression: Configured classifier
         """
-        print(f"Creating Logistic Regression classifier with random_state={random_state}")
+        print(f"Creating lightweight Logistic Regression classifier with random_state={random_state}")
         
         self.classifier = LogisticRegression(
             random_state=random_state,
             max_iter=1000,
-            solver='lbfgs',
+            solver='liblinear',  # More memory efficient than lbfgs for sparse data
             class_weight='balanced'
         )
         
@@ -310,12 +310,12 @@ class JapaneseSentimentModel:
         print(f"\n=== Saving Model ===")
         
         vectorizer_path = self.model_dir / f"{model_name}_vectorizer.pkl"
-        joblib.dump(self.vectorizer, vectorizer_path)
-        print(f"Vectorizer saved to: {vectorizer_path}")
+        joblib.dump(self.vectorizer, vectorizer_path, compress=('gzip', 3))
+        print(f"Vectorizer saved to: {vectorizer_path} (compressed)")
         
         classifier_path = self.model_dir / f"{model_name}_classifier.pkl"
-        joblib.dump(self.classifier, classifier_path)
-        print(f"Classifier saved to: {classifier_path}")
+        joblib.dump(self.classifier, classifier_path, compress=('gzip', 3))
+        print(f"Classifier saved to: {classifier_path} (compressed)")
         
         vectorizer_params = {k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v 
                            for k, v in self.vectorizer.get_params().items()}

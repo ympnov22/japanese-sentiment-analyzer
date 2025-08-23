@@ -20,16 +20,16 @@ primary_region = "nrt"
 
   [http_service.checks]
     [http_service.checks.health]
-      grace_period = "10s"
+      grace_period = "90s"
       interval = "30s"
       method = "GET"
-      path = "/health"
-      timeout = "5s"
+      path = "/healthz"
+      timeout = "10s"
 
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 8192
+  memory_mb = 256
 
 [processes]
-  web = "uvicorn app.main:app --host 0.0.0.0 --port 8000"
+  web = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log"

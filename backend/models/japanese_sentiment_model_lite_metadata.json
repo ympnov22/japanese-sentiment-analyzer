@@ -1,0 +1,57 @@
+{
+  "model_name": "japanese_sentiment_model_lite",
+  "sentiment_labels": [
+    "ネガティブ",
+    "ポジティブ"
+  ],
+  "label_to_index": {
+    "ネガティブ": 0,
+    "ポジティブ": 1
+  },
+  "index_to_label": {
+    "0": "ネガティブ",
+    "1": "ポジティブ"
+  },
+  "vectorizer_params": {
+    "analyzer": "word",
+    "binary": false,
+    "decode_error": "strict",
+    "dtype": "<class 'numpy.float64'>",
+    "encoding": "utf-8",
+    "input": "content",
+    "lowercase": true,
+    "max_df": 0.95,
+    "max_features": 30000,
+    "min_df": 2,
+    "ngram_range": "(1, 2)",
+    "norm": "l2",
+    "preprocessor": null,
+    "smooth_idf": true,
+    "stop_words": null,
+    "strip_accents": null,
+    "sublinear_tf": true,
+    "token_pattern": "(?u)\\b\\w+\\b",
+    "tokenizer": null,
+    "use_idf": true,
+    "vocabulary": null
+  },
+  "classifier_params": {
+    "C": 1.0,
+    "class_weight": "balanced",
+    "dual": false,
+    "fit_intercept": true,
+    "intercept_scaling": 1,
+    "l1_ratio": null,
+    "max_iter": 1000,
+    "multi_class": "deprecated",
+    "n_jobs": null,
+    "penalty": "l2",
+    "random_state": 42,
+    "solver": "liblinear",
+    "tol": 0.0001,
+    "verbose": 0,
+    "warm_start": false
+  },
+  "feature_count": 30000,
+  "save_time": "2025-08-23T19:58:19.783664"
+}
