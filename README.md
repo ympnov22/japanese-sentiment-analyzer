@@ -196,6 +196,82 @@ curl -X POST "http://localhost:8000/predict" \
      -d '{"text": "素晴らしい映画でした"}'
 ```
 
+## デプロイ
+
+### ローカル開発環境
+
+#### バックエンド起動
+```bash
+cd backend
+poetry install
+poetry run uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+```
+
+#### フロントエンド起動
+```bash
+cd frontend
+# 静的ファイルサーバーで配信
+python -m http.server 8080
+```
+
+### 本番環境デプロイ (Fly.io)
+
+#### 前提条件
+- Fly.ioアカウントの作成
+- flyctl CLIのインストール
+- FLY_API_TOKEN (org deploy token) の取得
+
+#### バックエンドデプロイ
+```bash
+cd backend
+flyctl deploy --config fly.toml
+```
+
+#### フロントエンドデプロイ
+```bash
+cd frontend
+flyctl deploy --config fly.toml
+```
+
+#### デプロイ後の確認
+```bash
+# API健康チェック
+curl https://jpn-sentiment-api-nrt.fly.dev/health
+
+# Webアプリアクセス
+# https://jpn-sentiment-web-nrt.fly.dev
+```
+
+#### ログ確認
+```bash
+# APIログ
+flyctl logs --app jpn-sentiment-api-nrt
+
+# Webアプリログ
+flyctl logs --app jpn-sentiment-web-nrt
+```
+
+#### ロールバック
+```bash
+# 前のバージョンにロールバック
+flyctl releases --app jpn-sentiment-api-nrt
+flyctl rollback --app jpn-sentiment-api-nrt <release-id>
+
+flyctl releases --app jpn-sentiment-web-nrt
+flyctl rollback --app jpn-sentiment-web-nrt <release-id>
+```
+
+#### アプリケーション管理
+```bash
+# アプリ状態確認
+flyctl status --app jpn-sentiment-api-nrt
+flyctl status --app jpn-sentiment-web-nrt
+
+# アプリ停止/開始
+flyctl scale count 0 --app jpn-sentiment-api-nrt  # 停止
+flyctl scale count 1 --app jpn-sentiment-api-nrt  # 開始
+```
+
 ## Deployment Options
 
 The application supports deployment to multiple platforms:
@@ -203,17 +279,6 @@ The application supports deployment to multiple platforms:
 - **Heroku**
 - **Vercel** (frontend)
 - **Render**
-
-### Fly.io Deployment
-```bash
-# Backend deployment
-cd backend
-fly deploy
-
-# Frontend deployment
-cd frontend
-# Build and deploy static files
-```
 
 ## Model Information
 

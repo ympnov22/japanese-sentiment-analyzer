@@ -1,0 +1,35 @@
+# Fly.io configuration for Japanese Sentiment Analysis API
+app = "jpn-sentiment-api-nrt"
+primary_region = "nrt"
+
+[build]
+  builder = "paketobuildpacks/builder:base"
+
+[env]
+  PORT = "8080"
+  PYTHONPATH = "/app"
+  ENVIRONMENT = "production"
+  ALLOWED_ORIGINS = "https://jpn-sentiment-web-nrt.fly.dev"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+
+  [http_service.checks]
+    [http_service.checks.health]
+      grace_period = "10s"
+      interval = "30s"
+      method = "GET"
+      path = "/health"
+      timeout = "5s"
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 256
+
+[processes]
+  web = "uvicorn app.main:app --host 0.0.0.0 --port 8080"

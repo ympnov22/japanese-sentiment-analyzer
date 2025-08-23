@@ -38,7 +38,11 @@ function logError(message, error) {
 
 async function loadConfig() {
     try {
-        CONFIG.API_BASE_URL = 'http://localhost:8000';
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+            CONFIG.API_BASE_URL = 'http://localhost:8000';
+        } else {
+            CONFIG.API_BASE_URL = 'https://jpn-sentiment-api-nrt.fly.dev';
+        }
         log('Configuration loaded', CONFIG);
     } catch (error) {
         logError('Failed to load configuration', error);
