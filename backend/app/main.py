@@ -18,8 +18,6 @@ app = FastAPI(
 )
 
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-if os.getenv("ENVIRONMENT") == "production":
-    allowed_origins = ["https://jpn-sentiment-web-nrt.fly.dev"]
 
 app.add_middleware(
     CORSMiddleware,
