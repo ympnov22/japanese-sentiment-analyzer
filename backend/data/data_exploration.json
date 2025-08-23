@@ -1,0 +1,30 @@
+{
+  "shape": [
+    9831,
+    3
+  ],
+  "columns": [
+    "label",
+    "text",
+    "text_length"
+  ],
+  "missing_values": {
+    "label": 0,
+    "text": 0,
+    "text_length": 0
+  },
+  "label_distribution": {
+    "0": 3751,
+    "1": 6080
+  },
+  "text_length_stats": {
+    "count": 9831.0,
+    "mean": 172.66290306174346,
+    "std": 175.40481846826995,
+    "min": 17.0,
+    "25%": 66.0,
+    "50%": 110.0,
+    "75%": 207.0,
+    "max": 1587.0
+  }
+}
