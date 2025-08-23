@@ -73,7 +73,7 @@
 ## 📁 GitHub リポジトリ情報
 - **Repository URL**: https://github.com/ympnov22/japanese-sentiment-analyzer
 - **Branch**: `devin/1724403880-phase1-initial-setup`
-- **Latest Commit**: `48afa98` - "Update Fly.io deployment config: increase memory to 8192MB and fix port configuration"
+- **Latest Commit**: `906c863` - "Complete Phase 7: Documentation & Deployment"
 - **変更内容**: デプロイ設定・本番対応・ドキュメント更新
 
 ## 🚀 本番URL
