@@ -36,7 +36,7 @@ class JapaneseSentimentModel:
         self.label_encoder = None
         self.is_trained = False
         
-        self.sentiment_labels = ["ネガティブ", "ニュートラル", "ポジティブ"]
+        self.sentiment_labels = ["ネガティブ", "ポジティブ"]
         self.label_to_index = {label: idx for idx, label in enumerate(self.sentiment_labels)}
         self.index_to_label = {idx: label for idx, label in enumerate(self.sentiment_labels)}
     

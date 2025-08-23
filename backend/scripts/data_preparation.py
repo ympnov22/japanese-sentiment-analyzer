@@ -84,9 +84,9 @@ def explore_data(df):
 
 def convert_labels(df):
     """
-    Convert binary labels to 3-class sentiment labels
+    Convert binary labels to 2-class sentiment labels
     Note: This dataset has binary labels (0=negative, 1=positive)
-    We'll create a balanced 3-class dataset by splitting positive samples
+    We'll use the original binary labels directly for 2-class classification
     
     Args:
         df (pd.DataFrame): Dataset with label column (0/1)
@@ -100,24 +100,10 @@ def convert_labels(df):
     original_counts = df['label'].value_counts().sort_index()
     print(original_counts)
     
-    positive_samples = df[df['label'] == 1].copy()
-    negative_samples = df[df['label'] == 0].copy()
-    
-    neutral_count = len(positive_samples) // 3
-    
-    positive_samples = positive_samples.sample(frac=1, random_state=42).reset_index(drop=True)
-    
-    neutral_samples = positive_samples[:neutral_count].copy()
-    neutral_samples['sentiment'] = "ニュートラル"
-    
-    positive_samples = positive_samples[neutral_count:].copy()
-    positive_samples['sentiment'] = "ポジティブ"
-    
-    negative_samples['sentiment'] = "ネガティブ"
-    
-    df = pd.concat([negative_samples, neutral_samples, positive_samples], ignore_index=True)
-    
-    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
+    df['sentiment'] = df['label'].map({
+        0: 'ネガティブ',
+        1: 'ポジティブ'
+    })
     
     print("Label conversion results:")
     sentiment_counts = df['sentiment'].value_counts()
