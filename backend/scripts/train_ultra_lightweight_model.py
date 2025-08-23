@@ -123,6 +123,38 @@ def train_ultra_lightweight_model():
         joblib.dump(vectorizer, vectorizer_path, compress=('gzip', 9))
         joblib.dump(classifier, classifier_path, compress=('gzip', 9))
         
+        weights_path = models_dir / "weights.npz"
+        np.savez_compressed(
+            weights_path,
+            coef=classifier.coef_.astype(np.float32),
+            intercept=classifier.intercept_.astype(np.float32)
+        )
+        
+        numpy_metadata_path = models_dir / "model_metadata.json"
+        numpy_metadata = {
+            'model_name': 'lightweight_numpy',
+            'model_type': 'Ultra-lightweight-numpy',
+            'vectorizer_type': 'HashingVectorizer',
+            'classifier_type': 'Custom-numpy',
+            'sentiment_labels': label_encoder.classes_.tolist(),
+            'label_to_index': {label: int(idx) for idx, label in enumerate(label_encoder.classes_)},
+            'index_to_label': {int(idx): label for idx, label in enumerate(label_encoder.classes_)},
+            'vectorizer_params': {
+                'n_features': 2**18,
+                'alternate_sign': False,
+                'ngram_range': [1, 2]
+            },
+            'weights_info': {
+                'coef_shape': classifier.coef_.shape,
+                'intercept_shape': classifier.intercept_.shape,
+                'dtype': 'float32'
+            },
+            'saved_at': datetime.now().isoformat()
+        }
+        
+        with open(numpy_metadata_path, 'w', encoding='utf-8') as f:
+            json.dump(numpy_metadata, f, ensure_ascii=False, indent=2)
+        
         metadata = {
             'model_name': model_name,
             'model_type': 'Ultra-lightweight',

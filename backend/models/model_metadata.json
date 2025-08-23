@@ -1,0 +1,37 @@
+{
+  "model_name": "lightweight_numpy",
+  "model_type": "Ultra-lightweight-numpy",
+  "vectorizer_type": "HashingVectorizer",
+  "classifier_type": "Custom-numpy",
+  "sentiment_labels": [
+    "ネガティブ",
+    "ポジティブ"
+  ],
+  "label_to_index": {
+    "ネガティブ": 0,
+    "ポジティブ": 1
+  },
+  "index_to_label": {
+    "0": "ネガティブ",
+    "1": "ポジティブ"
+  },
+  "vectorizer_params": {
+    "n_features": 262144,
+    "alternate_sign": false,
+    "ngram_range": [
+      1,
+      2
+    ]
+  },
+  "weights_info": {
+    "coef_shape": [
+      1,
+      262144
+    ],
+    "intercept_shape": [
+      1
+    ],
+    "dtype": "float32"
+  },
+  "saved_at": "2025-08-23T20:45:13.209851"
+}
