@@ -64,7 +64,7 @@ class SentimentAnalysisService:
         try:
             logger.info("Lazy loading sentiment analysis model...")
             
-            model_names = ["japanese_sentiment_model_lite", "japanese_sentiment_model"]
+            model_names = ["japanese_sentiment_model_ultra", "japanese_sentiment_model_lite", "japanese_sentiment_model"]
             
             for model_name in model_names:
                 vectorizer_path = self.model_dir / f"{model_name}_vectorizer.pkl"
