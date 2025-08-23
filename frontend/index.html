@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>日本語感情分析</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>日本語感情分析</h1>
+            <div id="api-status" class="api-status hidden"></div>
+        </header>
+
+        <main>
+            <div class="input-section">
+                <label for="text-input">分析したい日本語テキストを入力してください</label>
+                <textarea 
+                    id="text-input" 
+                    placeholder="分析したい日本語テキストを入力してください"
+                    maxlength="1000"
+                    rows="6"
+                ></textarea>
+                <div class="input-info">
+                    <span id="char-count">0</span> / 1000文字
+                </div>
+                <div id="input-error" class="error-message hidden"></div>
+            </div>
+
+            <div class="button-section">
+                <button id="analyze-btn" class="analyze-button">
+                    <span class="button-text">感情を判定</span>
+                    <div class="loading-spinner hidden"></div>
+                </button>
+            </div>
+
+            <div id="result-section" class="result-section hidden">
+                <h2>判定結果</h2>
+                <div class="result-content">
+                    <div class="sentiment-result">
+                        <span class="sentiment-label" id="sentiment-label"></span>
+                        <span class="confidence-score" id="confidence-score"></span>
+                    </div>
+                    <div class="confidence-bar">
+                        <div class="confidence-fill" id="confidence-fill"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="error-section" class="error-section hidden">
+                <h2>エラー</h2>
+                <div class="error-content">
+                    <p id="error-message"></p>
+                    <button id="retry-btn" class="retry-button">再試行</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

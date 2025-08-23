@@ -100,19 +100,38 @@ japanese-sentiment-analyzer/
    cd frontend
    ```
 
-2. **Configure API URL**
+2. **Configure API URL (optional)**
    ```bash
-   # Edit frontend/.env file
-   VITE_API_URL=http://localhost:8000
+   # The frontend automatically uses http://localhost:8000 for local development
+   # Edit frontend/.env file only if you need a different API URL
    ```
 
-3. **Open in browser**
+3. **Start the frontend**
+   
+   **Option 1: Direct file access**
    ```bash
-   # Serve static files or open index.html directly
+   # Open index.html directly in your browser
+   open index.html  # macOS
+   start index.html  # Windows
+   xdg-open index.html  # Linux
+   ```
+   
+   **Option 2: HTTP Server (recommended)**
+   ```bash
+   # Using Python's built-in server
    python -m http.server 3000
+   
+   # Or using Node.js serve
+   npx serve . -p 3000
    ```
-
+   
    The app will be available at: http://localhost:3000
+
+4. **Usage**
+   - Enter Japanese text in the textarea (max 1000 characters)
+   - Click "感情を判定" (Analyze Sentiment) button
+   - View results with sentiment classification and confidence score
+   - The interface is responsive and works on mobile devices
 
 ## API Endpoints
 
@@ -199,9 +218,19 @@ cd frontend
 ## Model Information
 
 - **Algorithm**: TF-IDF Vectorization + Logistic Regression
-- **Training Data**: Amazon Japanese Reviews (10,000 samples)
-- **Classes**: Positive, Negative, Neutral
+- **Training Data**: Japanese Sentiment Dataset (9,762 samples)
+- **Classes**: Positive (ポジティブ), Negative (ネガティブ) - Binary Classification
+- **Performance**: 94.5% training accuracy, 90.4% test accuracy
 - **Evaluation Metrics**: Accuracy, Precision, Recall, F1-Score, Confusion Matrix
+
+## Frontend Features
+
+- **Responsive Design**: Works on desktop and mobile (375px+ width)
+- **Input Validation**: Real-time character counting and validation
+- **Error Handling**: User-friendly error messages for network issues
+- **Loading States**: Visual feedback during API requests
+- **Accessibility**: Keyboard shortcuts (Ctrl/Cmd + Enter to analyze)
+- **Visual Feedback**: Color-coded results (green=positive, red=negative)
 
 ## Contributing
 
