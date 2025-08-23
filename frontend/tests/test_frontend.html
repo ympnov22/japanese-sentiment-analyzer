@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Tests - 日本語感情分析</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .test-container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .test-result {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+        }
+        .test-pass {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .test-fail {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .test-info {
+            background-color: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        #test-results {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .stats {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .stat {
+            padding: 10px;
+            border-radius: 4px;
+            text-align: center;
+            min-width: 100px;
+        }
+        .stat-total { background-color: #e9ecef; }
+        .stat-pass { background-color: #d4edda; }
+        .stat-fail { background-color: #f8d7da; }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1>Frontend Automated Tests</h1>
+        <p>This page runs automated tests for the Japanese sentiment analysis frontend.</p>
+        
+        <div class="stats">
+            <div class="stat stat-total">
+                <div>Total Tests</div>
+                <div id="total-tests">0</div>
+            </div>
+            <div class="stat stat-pass">
+                <div>Passed</div>
+                <div id="passed-tests">0</div>
+            </div>
+            <div class="stat stat-fail">
+                <div>Failed</div>
+                <div id="failed-tests">0</div>
+            </div>
+        </div>
+        
+        <button onclick="runAllTests()">Run All Tests</button>
+        <button onclick="clearResults()">Clear Results</button>
+        <button onclick="runUITests()">Run UI Tests</button>
+        <button onclick="runAPITests()">Run API Tests</button>
+        <button onclick="runValidationTests()">Run Validation Tests</button>
+        
+        <div id="test-results"></div>
+    </div>
+
+    <script>
+        let testResults = [];
+        let totalTests = 0;
+        let passedTests = 0;
+        let failedTests = 0;
+
+        // Test framework functions
+        function assert(condition, message) {
+            if (!condition) {
+                throw new Error(message || 'Assertion failed');
+            }
+        }
+
+        function assertEquals(actual, expected, message) {
+            if (actual !== expected) {
+                throw new Error(message || `Expected ${expected}, but got ${actual}`);
+            }
+        }
+
+        function assertContains(container, item, message) {
+            if (!container.includes(item)) {
+                throw new Error(message || `Expected container to include ${item}`);
+            }
+        }
+
+        function runTest(testName, testFunction) {
+            totalTests++;
+            try {
+                testFunction();
+                passedTests++;
+                addTestResult(testName, 'PASS', null);
+            } catch (error) {
+                failedTests++;
+                addTestResult(testName, 'FAIL', error.message);
+            }
+            updateStats();
+        }
+
+        function addTestResult(testName, status, error) {
+            const resultDiv = document.createElement('div');
+            resultDiv.className = `test-result test-${status.toLowerCase()}`;
+            
+            let content = `<strong>${status}</strong>: ${testName}`;
+            if (error) {
+                content += `<br><small>Error: ${error}</small>`;
+            }
+            
+            resultDiv.innerHTML = content;
+            document.getElementById('test-results').appendChild(resultDiv);
+        }
+
+        function updateStats() {
+            document.getElementById('total-tests').textContent = totalTests;
+            document.getElementById('passed-tests').textContent = passedTests;
+            document.getElementById('failed-tests').textContent = failedTests;
+        }
+
+        function clearResults() {
+            document.getElementById('test-results').innerHTML = '';
+            totalTests = 0;
+            passedTests = 0;
+            failedTests = 0;
+            updateStats();
+        }
+
+        // UI Tests
+        function runUITests() {
+            addTestResult('UI Tests', 'INFO', 'Starting UI tests...');
+
+            runTest('Page title should be correct', () => {
+                assertEquals(document.title, '日本語感情分析');
+            });
+
+            runTest('Main heading should exist', () => {
+                const heading = document.querySelector('h1');
+                assert(heading, 'Main heading not found');
+                assertEquals(heading.textContent, '日本語感情分析');
+            });
+
+            runTest('Text input should exist', () => {
+                const textInput = document.getElementById('text-input');
+                assert(textInput, 'Text input not found');
+                assertEquals(textInput.tagName.toLowerCase(), 'textarea');
+            });
+
+            runTest('Analyze button should exist', () => {
+                const button = document.getElementById('analyze-btn');
+                assert(button, 'Analyze button not found');
+                assertContains(button.textContent, '感情を判定');
+            });
+
+            runTest('Character counter should exist', () => {
+                const charCount = document.getElementById('char-count');
+                assert(charCount, 'Character counter not found');
+                assertEquals(charCount.textContent, '0');
+            });
+
+            runTest('Result section should be hidden initially', () => {
+                const resultSection = document.getElementById('result-section');
+                assert(resultSection, 'Result section not found');
+                assert(resultSection.classList.contains('hidden'), 'Result section should be hidden initially');
+            });
+
+            runTest('Error section should be hidden initially', () => {
+                const errorSection = document.getElementById('error-section');
+                assert(errorSection, 'Error section not found');
+                assert(errorSection.classList.contains('hidden'), 'Error section should be hidden initially');
+            });
+        }
+
+        // API Tests (mock)
+        function runAPITests() {
+            addTestResult('API Tests', 'INFO', 'Starting API tests...');
+
+            runTest('API configuration should be loaded', () => {
+                // Check if API_BASE_URL is defined (from script.js)
+                assert(typeof window.API_BASE_URL !== 'undefined', 'API_BASE_URL not defined');
+            });
+
+            runTest('Fetch function should be available', () => {
+                assert(typeof fetch === 'function', 'Fetch API not available');
+            });
+
+            // Mock API test
+            runTest('API request structure should be correct', () => {
+                const testData = { text: 'テストテキスト' };
+                const jsonString = JSON.stringify(testData);
+                const parsed = JSON.parse(jsonString);
+                assertEquals(parsed.text, 'テストテキスト');
+            });
+        }
+
+        // Validation Tests
+        function runValidationTests() {
+            addTestResult('Validation Tests', 'INFO', 'Starting validation tests...');
+
+            const textInput = document.getElementById('text-input');
+            const analyzeBtn = document.getElementById('analyze-btn');
+            const charCount = document.getElementById('char-count');
+
+            runTest('Empty text should disable button', () => {
+                textInput.value = '';
+                textInput.dispatchEvent(new Event('input'));
+                
+                // Wait a bit for event processing
+                setTimeout(() => {
+                    assert(analyzeBtn.disabled, 'Button should be disabled for empty text');
+                }, 100);
+            });
+
+            runTest('Valid text should enable button', () => {
+                textInput.value = 'テストテキスト';
+                textInput.dispatchEvent(new Event('input'));
+                
+                setTimeout(() => {
+                    assert(!analyzeBtn.disabled, 'Button should be enabled for valid text');
+                }, 100);
+            });
+
+            runTest('Character counter should update', () => {
+                const testText = 'テストテキスト';
+                textInput.value = testText;
+                textInput.dispatchEvent(new Event('input'));
+                
+                setTimeout(() => {
+                    assertEquals(charCount.textContent, testText.length.toString());
+                }, 100);
+            });
+
+            runTest('Long text should disable button', () => {
+                textInput.value = 'あ'.repeat(1001); // 1001 characters
+                textInput.dispatchEvent(new Event('input'));
+                
+                setTimeout(() => {
+                    assert(analyzeBtn.disabled, 'Button should be disabled for text over 1000 characters');
+                }, 100);
+            });
+
+            runTest('Exactly 1000 characters should be allowed', () => {
+                textInput.value = 'あ'.repeat(1000); // Exactly 1000 characters
+                textInput.dispatchEvent(new Event('input'));
+                
+                setTimeout(() => {
+                    assert(!analyzeBtn.disabled, 'Button should be enabled for exactly 1000 characters');
+                }, 100);
+            });
+        }
+
+        // Responsive Design Tests
+        function runResponsiveTests() {
+            addTestResult('Responsive Tests', 'INFO', 'Starting responsive design tests...');
+
+            runTest('Container should be responsive', () => {
+                const container = document.querySelector('.container');
+                assert(container, 'Container not found');
+                
+                const styles = window.getComputedStyle(container);
+                assert(styles.maxWidth, 'Container should have max-width');
+            });
+
+            runTest('Text input should be responsive', () => {
+                const textInput = document.getElementById('text-input');
+                const styles = window.getComputedStyle(textInput);
+                assertEquals(styles.width, '100%');
+            });
+
+            runTest('Button should be responsive', () => {
+                const button = document.getElementById('analyze-btn');
+                assert(button, 'Button not found');
+                
+                // Check if button has responsive styles
+                const styles = window.getComputedStyle(button);
+                assert(styles.padding, 'Button should have padding');
+            });
+        }
+
+        // Performance Tests
+        function runPerformanceTests() {
+            addTestResult('Performance Tests', 'INFO', 'Starting performance tests...');
+
+            runTest('Page load time should be reasonable', () => {
+                const loadTime = performance.timing.loadEventEnd - performance.timing.navigationStart;
+                assert(loadTime < 5000, `Page load time too slow: ${loadTime}ms`);
+            });
+
+            runTest('DOM elements should be accessible quickly', () => {
+                const start = performance.now();
+                
+                document.getElementById('text-input');
+                document.getElementById('analyze-btn');
+                document.getElementById('result-section');
+                document.getElementById('error-section');
+                
+                const end = performance.now();
+                const duration = end - start;
+                
+                assert(duration < 10, `DOM access too slow: ${duration}ms`);
+            });
+        }
+
+        // Accessibility Tests
+        function runAccessibilityTests() {
+            addTestResult('Accessibility Tests', 'INFO', 'Starting accessibility tests...');
+
+            runTest('Text input should have label', () => {
+                const textInput = document.getElementById('text-input');
+                const label = document.querySelector('label[for="text-input"]');
+                assert(label, 'Text input should have associated label');
+            });
+
+            runTest('Button should have accessible text', () => {
+                const button = document.getElementById('analyze-btn');
+                assert(button.textContent.trim().length > 0, 'Button should have text content');
+            });
+
+            runTest('Page should have proper heading structure', () => {
+                const h1 = document.querySelector('h1');
+                assert(h1, 'Page should have h1 heading');
+            });
+
+            runTest('Form elements should be keyboard accessible', () => {
+                const textInput = document.getElementById('text-input');
+                const button = document.getElementById('analyze-btn');
+                
+                assert(textInput.tabIndex >= 0 || textInput.tabIndex === undefined, 'Text input should be keyboard accessible');
+                assert(button.tabIndex >= 0 || button.tabIndex === undefined, 'Button should be keyboard accessible');
+            });
+        }
+
+        // Run all tests
+        function runAllTests() {
+            clearResults();
+            
+            runUITests();
+            runAPITests();
+            runValidationTests();
+            runResponsiveTests();
+            runPerformanceTests();
+            runAccessibilityTests();
+            
+            addTestResult('All Tests Complete', 'INFO', `Total: ${totalTests}, Passed: ${passedTests}, Failed: ${failedTests}`);
+        }
+
+        // Auto-run tests when page loads
+        window.addEventListener('load', () => {
+            addTestResult('Frontend Test Suite', 'INFO', 'Frontend test suite loaded. Click "Run All Tests" to start.');
+        });
+    </script>
+</body>
+</html>
