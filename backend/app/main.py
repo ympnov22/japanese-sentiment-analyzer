@@ -16,7 +16,7 @@ app = FastAPI(
     version="1.0.0"
 )
 
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,https://jpn-sentiment-web-nrt.fly.dev").split(",")
 
 app.add_middleware(
     CORSMiddleware,
