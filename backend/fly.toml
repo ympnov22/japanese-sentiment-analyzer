@@ -28,7 +28,7 @@ primary_region = "nrt"
 [[vm]]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 256
+  memory_mb = 512
 
 [processes]
   web = "uvicorn app.main:app --host 0.0.0.0 --port 8000 --workers 1 --no-access-log"
