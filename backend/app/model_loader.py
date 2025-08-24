@@ -76,6 +76,10 @@ class LightweightSentimentModel:
             self.intercept_ = weights_data['intercept'].astype(np.float32)
             self.classes_ = np.array(self.metadata['sentiment_labels'])
             
+            del weights_data
+            import gc
+            gc.collect()
+            
             vectorizer_params = self.metadata.get('vectorizer_params', {})
             self.vectorizer = self._create_vectorizer(vectorizer_params)
             
@@ -171,7 +175,11 @@ class LightweightSentimentModel:
             
             return {
                 "result": sentiment_label,
-                "score": confidence_score
+                "score": confidence_score,
+                "all_scores": {
+                    self.classes_[i]: float(probabilities[i]) 
+                    for i in range(len(self.classes_))
+                }
             }
             
         except Exception as e:
@@ -193,5 +201,13 @@ class LightweightSentimentModel:
             
             total_size = sum(info["model_components"].values())
             info["total_model_size_mb"] = total_size
+            
+            try:
+                import psutil
+                import os
+                process = psutil.Process(os.getpid())
+                info["process_rss_mb"] = process.memory_info().rss / (1024 * 1024)
+            except ImportError:
+                info["process_rss_mb"] = "psutil not available"
         
         return info
