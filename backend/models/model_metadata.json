@@ -1,22 +1,19 @@
 {
-  "model_name": "lightweight_numpy_3class",
-  "model_type": "Ultra-lightweight-numpy-3class",
+  "model_name": "lightweight_numpy_binary",
+  "model_type": "Ultra-lightweight-numpy-binary",
   "vectorizer_type": "HashingVectorizer",
   "classifier_type": "Custom-numpy",
   "sentiment_labels": [
-    "ニュートラル",
     "ネガティブ",
     "ポジティブ"
   ],
   "label_to_index": {
-    "ニュートラル": 0,
-    "ネガティブ": 1,
-    "ポジティブ": 2
+    "ネガティブ": 0,
+    "ポジティブ": 1
   },
   "index_to_label": {
-    "0": "ニュートラル",
-    "1": "ネガティブ",
-    "2": "ポジティブ"
+    "0": "ネガティブ",
+    "1": "ポジティブ"
   },
   "vectorizer_params": {
     "n_features": 262144,
@@ -28,18 +25,24 @@
   },
   "weights_info": {
     "coef_shape": [
-      3,
+      1,
       262144
     ],
     "intercept_shape": [
-      3
+      1
     ],
     "dtype": "float32"
   },
   "class_weights": {
     "0": 1.0,
-    "1": 1.0,
-    "2": 1.0
+    "1": 1.0
   },
-  "saved_at": "2025-08-24T21:36:49.707070"
+  "best_params": {
+    "C": 0.1,
+    "max_iter": 1000,
+    "solver": "liblinear"
+  },
+  "test_accuracy": 1.0,
+  "test_f1_score": 1.0,
+  "saved_at": "2025-08-24T21:50:11.882224"
 }
