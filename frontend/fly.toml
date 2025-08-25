@@ -21,7 +21,7 @@ primary_region = "nrt"
   memory_mb = 256
 
 [processes]
-  web = "python -m http.server 8080"
+  web = "nginx -g 'daemon off;'"
 
 [[statics]]
   guest_path = "/app"
