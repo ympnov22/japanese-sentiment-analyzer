@@ -182,7 +182,7 @@ function setLoadingState(loading) {
 async function checkApiHealth() {
     try {
         log('Checking API health...');
-        const response = await fetch(`${CONFIG.API_BASE_URL}/healthz`, {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/health`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
