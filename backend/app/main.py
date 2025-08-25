@@ -6,10 +6,10 @@ from pathlib import Path
 from typing import Dict, Any, List
 import os
 from app.model_loader import LightweightSentimentModel
-from app.models.batch_request import (
-    BatchPredictRequest, BatchPredictResponse, AnalysisHistoryRequest, AnalysisHistoryResponse
-)
-from app.services.batch_service import BatchSentimentService
+# from app.models.batch_request import (
+#     BatchPredictRequest, BatchPredictResponse, AnalysisHistoryRequest, AnalysisHistoryResponse
+# )
+# from app.services.batch_service import BatchSentimentService
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -43,7 +43,7 @@ class HealthResponse(BaseModel):
     message: str
 
 sentiment_service = LightweightSentimentModel()
-batch_service = BatchSentimentService(sentiment_service)
+# batch_service = BatchSentimentService(sentiment_service)  # Temporarily disabled
 
 @app.on_event("startup")
 async def startup_event():
@@ -87,26 +87,26 @@ async def predict_sentiment(request: PredictRequest):
         logger.error(f"Unexpected error in predict endpoint: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
 
-@app.post("/predict/batch", response_model=BatchPredictResponse)
-async def predict_batch_sentiment(request: BatchPredictRequest):
-    """Predict sentiment for multiple Japanese texts"""
-    try:
-        logger.info(f"Received batch prediction request for {len(request.texts)} texts")
-        
-        if len(request.texts) > 1000:
-            raise HTTPException(status_code=400, detail="Batch size exceeds maximum limit of 1000 texts")
-        
-        result = await batch_service.process_batch(request)
-        
-        logger.info(f"Batch processing completed: {result.summary['successful_predictions']}/{result.summary['total_texts']} successful")
-        
-        return result
-        
-    except HTTPException:
-        raise
-    except Exception as e:
-        logger.error(f"Unexpected error in batch predict endpoint: {str(e)}")
-        raise HTTPException(status_code=500, detail="Internal server error")
+# @app.post("/predict/batch", response_model=BatchPredictResponse)
+# async def predict_batch_sentiment(request: BatchPredictRequest):
+#     """Predict sentiment for multiple Japanese texts"""
+#     try:
+#         logger.info(f"Received batch prediction request for {len(request.texts)} texts")
+#         
+#         if len(request.texts) > 1000:
+#             raise HTTPException(status_code=400, detail="Batch size exceeds maximum limit of 1000 texts")
+#         
+#         result = await batch_service.process_batch(request)
+#         
+#         logger.info(f"Batch processing completed: {result.summary['successful_predictions']}/{result.summary['total_texts']} successful")
+#         
+#         return result
+#         
+#     except HTTPException:
+#         raise
+#     except Exception as e:
+#         logger.error(f"Unexpected error in batch predict endpoint: {str(e)}")
+#         raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.get("/analyze/stats")
 async def get_analysis_stats():
