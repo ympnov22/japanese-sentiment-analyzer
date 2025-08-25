@@ -41,7 +41,7 @@ async function loadConfig() {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             CONFIG.API_BASE_URL = 'http://localhost:8000';
         } else {
-            CONFIG.API_BASE_URL = 'https://app-fxncpnbx.fly.dev';
+            CONFIG.API_BASE_URL = 'https://jpn-sentiment-api-nrt.fly.dev';
         }
         log('Configuration loaded', CONFIG);
     } catch (error) {
@@ -182,7 +182,7 @@ function setLoadingState(loading) {
 async function checkApiHealth() {
     try {
         log('Checking API health...');
-        const response = await fetch(`${CONFIG.API_BASE_URL}/healthz`, {
+        const response = await fetch(`${CONFIG.API_BASE_URL}/health`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'

@@ -13,7 +13,7 @@ COPY pyproject.toml poetry.lock ./
 # Install poetry and dependencies
 RUN pip install poetry && \
     poetry config virtualenvs.create false && \
-    poetry install --only=main
+    poetry install --only=main --no-root
 
 # Copy application code
 COPY . .
@@ -22,7 +22,7 @@ COPY . .
 RUN mkdir -p models
 
 # Expose port
-EXPOSE 8080
+EXPOSE 8000
 
 # Start command
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8080"]
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
