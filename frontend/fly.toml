@@ -21,7 +21,3 @@ primary_region = "nrt"
 
 [processes]
   web = "nginx -g 'daemon off;'"
-
-[[statics]]
-  guest_path = "/app"
-  url_prefix = "/"
