@@ -3,56 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日本語感情分析</title>
+    <title>日本語感情分析 - AI Sentiment Analyzer</title>
     <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 </head>
 <body>
+    <div class="background-animation">
+        <div class="gradient-orb orb-1"></div>
+        <div class="gradient-orb orb-2"></div>
+        <div class="gradient-orb orb-3"></div>
+    </div>
+    
     <div class="container">
-        <header>
-            <h1>日本語感情分析</h1>
-            <div id="api-status" class="api-status hidden"></div>
+        <header class="header-glass">
+            <div class="header-content">
+                <h1 class="main-title">
+                    <span class="title-gradient">日本語感情分析</span>
+                    <span class="subtitle">AI Sentiment Analyzer</span>
+                </h1>
+                <div id="api-status" class="api-status hidden"></div>
+            </div>
         </header>
 
-        <main>
-            <div class="input-section">
-                <label for="text-input">分析したい日本語テキストを入力してください</label>
-                <textarea 
-                    id="text-input" 
-                    placeholder="分析したい日本語テキストを入力してください"
-                    maxlength="1000"
-                    rows="6"
-                ></textarea>
-                <div class="input-info">
-                    <span id="char-count">0</span> / 1000文字
+        <main class="main-content">
+            <div class="input-card glass-card">
+                <div class="card-header">
+                    <h2 class="card-title">テキスト入力</h2>
+                    <div class="ai-indicator">
+                        <div class="ai-pulse"></div>
+                        <span>AI Ready</span>
+                    </div>
                 </div>
-                <div id="input-error" class="error-message hidden"></div>
+                
+                <div class="input-section">
+                    <label for="text-input" class="input-label">分析したい日本語テキストを入力してください</label>
+                    <div class="textarea-wrapper">
+                        <textarea 
+                            id="text-input" 
+                            placeholder="分析したい日本語テキストを入力してください..."
+                            maxlength="1000"
+                            rows="6"
+                            class="futuristic-textarea"
+                        ></textarea>
+                        <div class="input-glow"></div>
+                    </div>
+                    <div class="input-info">
+                        <span id="char-count" class="char-count">0</span>
+                        <span class="char-limit">/ 1000文字</span>
+                    </div>
+                    <div id="input-error" class="error-message hidden"></div>
+                </div>
+
+                <div class="button-section">
+                    <button id="analyze-btn" class="analyze-button futuristic-button">
+                        <div class="button-bg"></div>
+                        <div class="button-content">
+                            <span class="button-text">感情を判定</span>
+                            <div class="loading-spinner hidden">
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                                <div class="spinner-ring"></div>
+                            </div>
+                        </div>
+                        <div class="button-ripple"></div>
+                    </button>
+                </div>
             </div>
 
-            <div class="button-section">
-                <button id="analyze-btn" class="analyze-button">
-                    <span class="button-text">感情を判定</span>
-                    <div class="loading-spinner hidden"></div>
-                </button>
-            </div>
-
-            <div id="result-section" class="result-section hidden">
-                <h2>判定結果</h2>
+            <div id="result-section" class="result-section glass-card hidden">
+                <div class="card-header">
+                    <h2 class="card-title">判定結果</h2>
+                    <div class="result-animation">
+                        <div class="scan-line"></div>
+                    </div>
+                </div>
                 <div class="result-content">
-                    <div class="sentiment-result">
-                        <span class="sentiment-label" id="sentiment-label"></span>
-                        <span class="confidence-score" id="confidence-score"></span>
+                    <div class="sentiment-display">
+                        <div class="sentiment-icon" id="sentiment-icon">
+                            <div class="icon-glow"></div>
+                        </div>
+                        <div class="sentiment-info">
+                            <span class="sentiment-label" id="sentiment-label"></span>
+                            <span class="confidence-score" id="confidence-score"></span>
+                        </div>
                     </div>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" id="confidence-fill"></div>
+                    <div class="confidence-visualization">
+                        <div class="confidence-bar-container">
+                            <div class="confidence-bar">
+                                <div class="confidence-fill" id="confidence-fill">
+                                    <div class="confidence-shine"></div>
+                                </div>
+                            </div>
+                            <div class="confidence-particles" id="confidence-particles"></div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="error-section" class="error-section hidden">
-                <h2>エラー</h2>
+            <div id="error-section" class="error-section glass-card hidden">
+                <div class="card-header">
+                    <h2 class="card-title error-title">システムエラー</h2>
+                </div>
                 <div class="error-content">
-                    <p id="error-message"></p>
-                    <button id="retry-btn" class="retry-button">再試行</button>
+                    <div class="error-icon">⚠️</div>
+                    <p id="error-message" class="error-text"></p>
+                    <button id="retry-btn" class="retry-button futuristic-button">
+                        <div class="button-bg"></div>
+                        <div class="button-content">
+                            <span>再試行</span>
+                        </div>
+                    </button>
                 </div>
             </div>
         </main>

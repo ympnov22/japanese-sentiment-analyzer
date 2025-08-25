@@ -66,7 +66,29 @@ function initializeElements() {
     elements.retryBtn = document.getElementById('retry-btn');
     elements.apiStatus = document.getElementById('api-status');
     
+    addInputAnimations();
+    
     log('DOM elements initialized');
+}
+
+function addInputAnimations() {
+    const textInput = elements.textInput;
+    
+    textInput.addEventListener('focus', () => {
+        textInput.parentElement.classList.add('focused');
+    });
+    
+    textInput.addEventListener('blur', () => {
+        textInput.parentElement.classList.remove('focused');
+    });
+    
+    textInput.addEventListener('input', (e) => {
+        if (e.target.value.length > 0) {
+            textInput.parentElement.classList.add('has-content');
+        } else {
+            textInput.parentElement.classList.remove('has-content');
+        }
+    });
 }
 
 function setupEventListeners() {
@@ -282,22 +304,62 @@ function showResult(sentiment, confidence) {
     elements.sentimentLabel.textContent = sentiment;
     elements.sentimentLabel.className = 'sentiment-label';
     
+    const sentimentIcon = document.getElementById('sentiment-icon');
+    sentimentIcon.className = 'sentiment-icon';
+    
     if (sentiment === 'ポジティブ') {
         elements.sentimentLabel.classList.add('positive');
         elements.confidenceFill.className = 'confidence-fill positive';
+        sentimentIcon.classList.add('positive');
     } else {
         elements.sentimentLabel.classList.add('negative');
         elements.confidenceFill.className = 'confidence-fill negative';
+        sentimentIcon.classList.add('negative');
     }
     
     const confidencePercent = Math.round(confidence * 100);
     elements.confidenceScore.textContent = `信頼度: ${confidencePercent}%`;
     
-    elements.confidenceFill.style.width = `${confidencePercent}%`;
-    
     elements.resultSection.classList.remove('hidden');
     
+    setTimeout(() => {
+        elements.confidenceFill.style.width = `${confidencePercent}%`;
+        createConfidenceParticles(confidencePercent);
+    }, 300);
+    
     elements.resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+function createConfidenceParticles(confidence) {
+    const particlesContainer = document.getElementById('confidence-particles');
+    particlesContainer.innerHTML = '';
+    
+    const particleCount = Math.floor(confidence / 10);
+    
+    for (let i = 0; i < particleCount; i++) {
+        const particle = document.createElement('div');
+        particle.style.cssText = `
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 50%;
+            left: ${Math.random() * 100}%;
+            top: ${Math.random() * 100}%;
+            animation: particle-float 3s ease-in-out infinite;
+            animation-delay: ${Math.random() * 2}s;
+        `;
+        particlesContainer.appendChild(particle);
+    }
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes particle-float {
+            0%, 100% { transform: translateY(0px) scale(1); opacity: 0.8; }
+            50% { transform: translateY(-10px) scale(1.2); opacity: 1; }
+        }
+    `;
+    document.head.appendChild(style);
 }
 
 function hideResult() {
