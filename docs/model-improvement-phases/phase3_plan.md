@@ -1,60 +1,54 @@
-# Phase 3 計画: 高度なモデル最適化と本格運用準備
+# Phase 3 計画: 2クラス分類の高度な最適化と本格運用準備
 
 ## 概要
 **Repository**: ympnov22/japanese-sentiment-analyzer  
 **Branch**: devin/1756116053-model-accuracy-improvement  
-**Phase**: Phase 3 - 高度なモデル最適化と本格運用準備  
-**計画作成日**: 2025年8月25日
+**Phase**: Phase 3 - 2クラス分類の高度な最適化と本格運用準備  
+**計画作成日**: 2025年8月25日  
+**計画修正日**: 2025年8月25日（ユーザー承認済み）
 
 ## 🎯 Phase 3 の目標
 
-Phase 2でバイアス問題を解決し基本性能を改善したため、Phase 3では以下の高度な最適化を実施します：
+Phase 2でバイアス問題を解決し基本性能を改善したため、Phase 3では既存の2クラス分類データセットを活用した高度な最適化を実施します：
 
 ### 主要目標
-1. **多クラス分類への拡張** - 3クラス（ポジティブ・ネガティブ・ニュートラル）対応
-2. **アンサンブル手法の導入** - 複数モデルの組み合わせで精度向上
-3. **特徴エンジニアリング強化** - 日本語特有の特徴量追加
-4. **本格運用準備** - パフォーマンス最適化とモニタリング
-5. **API拡張** - バッチ処理とリアルタイム分析機能
+1. **アンサンブル手法の導入** - 複数モデルの組み合わせで精度向上
+2. **特徴エンジニアリング強化** - 日本語特有の特徴量追加
+3. **本格運用準備** - パフォーマンス最適化とモニタリング
+4. **API拡張** - バッチ処理とリアルタイム分析機能
+5. **推論最適化** - 速度・メモリ効率の向上
 
 ## 📋 Phase 3 タスクリスト
 
-### Task 3.1: 多クラス分類対応
-- [ ] 3クラス（ポジティブ・ネガティブ・ニュートラル）データセット準備
-- [ ] 多クラス対応のモデル訓練パイプライン実装
-- [ ] 多クラス評価指標の実装（macro/micro F1, per-class metrics）
-- [ ] 混同行列の3クラス対応
-- [ ] API の3クラス出力対応
-
-### Task 3.2: アンサンブル手法導入
+### Task 3.1: アンサンブル手法導入
 - [ ] 複数アルゴリズムの実装（SVM, Random Forest, XGBoost）
 - [ ] Voting Classifier の実装
 - [ ] Stacking Ensemble の実装
 - [ ] アンサンブル性能評価とベンチマーク
 - [ ] 最適なアンサンブル構成の決定
 
-### Task 3.3: 特徴エンジニアリング強化
+### Task 3.2: 特徴エンジニアリング強化
 - [ ] 感情語辞書の統合（日本語感情極性辞書）
 - [ ] 品詞情報の活用（MeCab統合）
 - [ ] 文長・句読点などの統計的特徴量
 - [ ] Word2Vec/FastTextによる分散表現
 - [ ] 特徴量重要度分析と選択
 
-### Task 3.4: パフォーマンス最適化
+### Task 3.3: パフォーマンス最適化
 - [ ] モデル推論速度の最適化
 - [ ] メモリ使用量の削減
 - [ ] バッチ処理機能の実装
 - [ ] キャッシュ機能の追加
 - [ ] 並列処理対応
 
-### Task 3.5: モニタリング・ロギング強化
+### Task 3.4: モニタリング・ロギング強化
 - [ ] 予測信頼度の詳細ログ
 - [ ] モデル性能メトリクスの継続監視
 - [ ] データドリフト検出機能
 - [ ] A/Bテスト基盤の準備
 - [ ] アラート機能の実装
 
-### Task 3.6: API機能拡張
+### Task 3.5: API機能拡張
 - [ ] バッチ分析エンドポイント（複数テキスト一括処理）
 - [ ] ストリーミング分析対応
 - [ ] 分析結果の詳細出力（特徴量寄与度など）
@@ -63,26 +57,7 @@ Phase 2でバイアス問題を解決し基本性能を改善したため、Phas
 
 ## 🔧 技術仕様
 
-### 3.1 多クラス分類アーキテクチャ
-```python
-# 3クラス対応のPipeline
-pipeline_multiclass = Pipeline([
-    ('tfidf', TfidfVectorizer(
-        analyzer='char',
-        ngram_range=(3, 5),
-        min_df=2,
-        max_df=0.95,
-        max_features=50000  # 3クラス用に拡張
-    )),
-    ('classifier', LogisticRegression(
-        multi_class='ovr',  # One-vs-Rest
-        class_weight='balanced',
-        max_iter=300
-    ))
-])
-```
-
-### 3.2 アンサンブル構成
+### 3.1 アンサンブル構成
 ```python
 # Voting Ensemble
 ensemble = VotingClassifier([
@@ -100,7 +75,7 @@ stacking = StackingClassifier([
 ], final_estimator=LogisticRegression())
 ```
 
-### 3.3 特徴エンジニアリング
+### 3.2 特徴エンジニアリング
 ```python
 # 複合特徴量パイプライン
 feature_union = FeatureUnion([
@@ -112,7 +87,7 @@ feature_union = FeatureUnion([
 ])
 ```
 
-### 3.4 API拡張仕様
+### 3.3 API拡張仕様
 ```python
 # バッチ分析エンドポイント
 @app.post("/analyze/batch")
@@ -128,18 +103,12 @@ async def analyze_detailed(text: str) -> DetailedSentimentResult:
 
 ## 📊 評価基準
 
-### 3.1 多クラス性能目標
-- **Macro F1**: > 0.75（3クラス平均）
-- **Per-class F1**: 各クラス > 0.70
-- **Balanced Accuracy**: > 0.80
-- **Cohen's Kappa**: > 0.65
-
-### 3.2 アンサンブル性能目標
+### 3.1 アンサンブル性能目標
 - **単一モデル比較**: +5%以上の性能向上
 - **推論時間**: 単一モデルの2倍以内
 - **メモリ使用量**: 単一モデルの3倍以内
 
-### 3.3 パフォーマンス目標
+### 3.2 パフォーマンス目標
 - **推論速度**: < 100ms/request（単一テキスト）
 - **バッチ処理**: > 1000 texts/second
 - **メモリ使用量**: < 500MB（本格運用時）
@@ -147,20 +116,7 @@ async def analyze_detailed(text: str) -> DetailedSentimentResult:
 
 ## 🧪 検証戦略
 
-### 3.1 多クラス検証
-```python
-# 3クラスサニティテスト
-positive_text = "最高に嬉しい！素晴らしい商品です。"
-negative_text = "最悪で腹が立つ。二度と買いません。"
-neutral_text = "普通の商品だと思います。"
-
-# 期待結果
-assert predict(positive_text).label == "ポジティブ"
-assert predict(negative_text).label == "ネガティブ"  
-assert predict(neutral_text).label == "ニュートラル"
-```
-
-### 3.2 アンサンブル検証
+### 3.1 アンサンブル検証
 ```python
 # アンサンブル vs 単一モデル比較
 ensemble_score = evaluate_model(ensemble_model, test_data)
@@ -168,7 +124,7 @@ single_score = evaluate_model(best_single_model, test_data)
 assert ensemble_score > single_score + 0.05  # 5%以上向上
 ```
 
-### 3.3 パフォーマンス検証
+### 3.2 パフォーマンス検証
 ```python
 # 推論速度テスト
 start_time = time.time()
@@ -187,14 +143,12 @@ assert throughput > 1000  # 1000 texts/second以上
 ## 📁 成果物
 
 ### コードファイル
-- `backend/scripts/multiclass_training.py`: 3クラス対応訓練スクリプト
 - `backend/scripts/ensemble_training.py`: アンサンブル訓練スクリプト
 - `backend/scripts/feature_engineering.py`: 特徴エンジニアリング
 - `backend/app/models/`: 新しいモデルクラス群
 - `backend/app/services/`: 拡張されたサービス層
 
 ### テストファイル
-- `backend/tests/test_multiclass.py`: 3クラス分類テスト
 - `backend/tests/test_ensemble.py`: アンサンブルテスト
 - `backend/tests/test_performance.py`: パフォーマンステスト
 - `backend/tests/test_api_extended.py`: 拡張API テスト
@@ -206,25 +160,19 @@ assert throughput > 1000  # 1000 texts/second以上
 
 ## 🔄 実装順序
 
-### Week 1: 多クラス分類基盤
-1. 3クラスデータセット準備・分析
-2. 多クラス対応パイプライン実装
-3. 基本的な3クラス評価実装
-4. サニティテスト作成・実行
-
-### Week 2: アンサンブル手法
+### Week 1: アンサンブル手法
 1. 複数アルゴリズムの個別実装
 2. Voting Classifier実装
 3. Stacking Ensemble実装
 4. アンサンブル性能評価
 
-### Week 3: 特徴エンジニアリング
+### Week 2: 特徴エンジニアリング
 1. 感情語辞書統合
 2. 品詞情報活用（MeCab）
 3. 統計的特徴量追加
 4. 分散表現統合
 
-### Week 4: 最適化・運用準備
+### Week 3: 最適化・運用準備
 1. パフォーマンス最適化
 2. API機能拡張
 3. モニタリング機能実装
