@@ -42,9 +42,19 @@ sentiment_service = LightweightSentimentModel()
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize API without loading model (lazy loading)"""
-    logger.info("Starting Japanese Sentiment Analysis API with lazy loading...")
-    logger.info("Model will be loaded on first prediction request")
+    """Initialize API and preload model"""
+    logger.info("Starting Japanese Sentiment Analysis API with model preloading...")
+    
+    try:
+        logger.info("Loading sentiment model during startup...")
+        if sentiment_service.load_model():
+            logger.info("Model preloaded successfully during startup")
+        else:
+            logger.warning("Model preloading failed, will fall back to lazy loading")
+    except Exception as e:
+        logger.error(f"Error during model preloading: {str(e)}")
+        logger.warning("Continuing with lazy loading as fallback")
+    
     logger.info("API ready for requests")
 
 @app.get("/health", response_model=HealthResponse)
