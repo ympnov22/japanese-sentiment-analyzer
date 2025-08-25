@@ -47,19 +47,9 @@ batch_service = BatchSentimentService(sentiment_service)
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize API and preload model"""
-    logger.info("Starting Japanese Sentiment Analysis API with model preloading...")
-    
-    try:
-        logger.info("Loading sentiment model during startup...")
-        if sentiment_service.load_model():
-            logger.info("Model preloaded successfully during startup")
-        else:
-            logger.warning("Model preloading failed, will fall back to lazy loading")
-    except Exception as e:
-        logger.error(f"Error during model preloading: {str(e)}")
-        logger.warning("Continuing with lazy loading as fallback")
-    
+    """Initialize API with lazy loading strategy"""
+    logger.info("Starting Japanese Sentiment Analysis API with lazy loading strategy...")
+    logger.info("Models will be loaded on first prediction request to reduce startup memory usage")
     logger.info("API ready for requests")
 
 @app.get("/health", response_model=HealthResponse)
