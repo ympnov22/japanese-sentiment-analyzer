@@ -197,13 +197,22 @@ class LightweightSentimentModel:
             
             logger.info(f"Prediction: {sentiment_label}, Confidence: {confidence_score:.3f}")
             
+            if hasattr(self, 'metadata') and 'index_to_label' in self.metadata:
+                index_to_label = {int(k): v for k, v in self.metadata['index_to_label'].items()}
+                all_scores = {
+                    index_to_label[i]: float(probabilities[i]) 
+                    for i in range(len(self.classes_))
+                }
+            else:
+                all_scores = {
+                    str(self.classes_[i]): float(probabilities[i]) 
+                    for i in range(len(self.classes_))
+                }
+            
             return {
                 "result": sentiment_label,
                 "score": confidence_score,
-                "all_scores": {
-                    self.classes_[i]: float(probabilities[i]) 
-                    for i in range(len(self.classes_))
-                }
+                "all_scores": all_scores
             }
             
         except Exception as e:
