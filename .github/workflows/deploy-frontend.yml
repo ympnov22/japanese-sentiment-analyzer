@@ -1,9 +1,10 @@
 name: Deploy Frontend to Fly.io
 on:
   push:
-    branches: [ main ]
+    branches: [ main, "devin/1724403880-phase1-initial-setup" ]
     paths:
       - "frontend/**"
+      - ".github/workflows/deploy-frontend.yml"
   workflow_dispatch:
     inputs:
       reason:
