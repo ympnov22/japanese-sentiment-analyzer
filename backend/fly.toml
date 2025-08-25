@@ -27,7 +27,7 @@ primary_region = "nrt"
   timeout = "20s"
 
 [[vm]]
-  cpu_kind = "shared"
+  cpu_kind = "performance"
   cpus = 1
   memory_mb = 4096
 
