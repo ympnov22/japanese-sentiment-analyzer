@@ -308,10 +308,12 @@ function showResult(sentiment, confidence) {
     sentimentIcon.className = 'sentiment-icon';
     
     if (sentiment === 'ポジティブ') {
+        elements.sentimentLabel.textContent = 'Positive';
         elements.sentimentLabel.classList.add('positive');
         elements.confidenceFill.className = 'confidence-fill positive';
         sentimentIcon.classList.add('positive');
     } else {
+        elements.sentimentLabel.textContent = 'Negative';
         elements.sentimentLabel.classList.add('negative');
         elements.confidenceFill.className = 'confidence-fill negative';
         sentimentIcon.classList.add('negative');

@@ -30,7 +30,7 @@ body {
     position: relative;
 }
 
-/* Animated background */
+/* Clean background */
 .background-animation {
     position: fixed;
     top: 0;
@@ -38,47 +38,7 @@ body {
     width: 100%;
     height: 100%;
     z-index: -1;
-    overflow: hidden;
-}
-
-.gradient-orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(40px);
-    animation: float 6s ease-in-out infinite;
-}
-
-.orb-1 {
-    width: 300px;
-    height: 300px;
-    background: var(--primary-gradient);
-    top: 10%;
-    left: 10%;
-    animation-delay: 0s;
-}
-
-.orb-2 {
-    width: 200px;
-    height: 200px;
-    background: var(--accent-gradient);
-    top: 60%;
-    right: 10%;
-    animation-delay: 2s;
-}
-
-.orb-3 {
-    width: 250px;
-    height: 250px;
-    background: var(--secondary-gradient);
-    bottom: 20%;
-    left: 50%;
-    animation-delay: 4s;
-}
-
-@keyframes float {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    33% { transform: translateY(-20px) rotate(120deg); }
-    66% { transform: translateY(10px) rotate(240deg); }
+    background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 25%, #16213e 50%, #0f3460 75%, #533483 100%);
 }
 
 /* Container */
@@ -294,17 +254,32 @@ body {
     color: #ef5350;
 }
 
-/* Futuristic button */
+/* Enhanced futuristic button */
 .futuristic-button {
     position: relative;
     background: transparent;
-    border: none;
+    border: 2px solid rgba(79, 172, 254, 0.3);
     border-radius: 15px;
     cursor: pointer;
     overflow: hidden;
-    transition: all 0.3s ease;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     min-width: 180px;
     height: 60px;
+    transform: translateZ(0);
+}
+
+.futuristic-button:hover {
+    border-color: rgba(79, 172, 254, 0.8);
+    transform: translateY(-4px) translateZ(0);
+    box-shadow: 
+        0 15px 40px rgba(79, 172, 254, 0.3),
+        0 0 0 1px rgba(79, 172, 254, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+}
+
+.futuristic-button:active {
+    transform: translateY(-2px) translateZ(0);
+    transition: all 0.1s ease;
 }
 
 .button-bg {
@@ -313,9 +288,19 @@ body {
     left: 0;
     right: 0;
     bottom: 0;
-    background: var(--primary-gradient);
-    border-radius: 15px;
-    transition: all 0.3s ease;
+    background: linear-gradient(135deg, 
+        rgba(79, 172, 254, 0.1), 
+        rgba(138, 43, 226, 0.1)
+    );
+    border-radius: 13px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.futuristic-button:hover .button-bg {
+    background: linear-gradient(135deg, 
+        rgba(79, 172, 254, 0.2), 
+        rgba(138, 43, 226, 0.2)
+    );
 }
 
 .button-content {
@@ -328,39 +313,45 @@ body {
     color: var(--text-primary);
     font-weight: 600;
     font-size: 1.1rem;
+    transition: all 0.3s ease;
+}
+
+.futuristic-button:hover .button-content {
+    transform: scale(1.02);
+    text-shadow: 0 0 20px rgba(79, 172, 254, 0.5);
 }
 
 .button-ripple {
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%);
-    border-radius: 15px;
-    opacity: 0;
-    transform: scale(0);
-    transition: all 0.6s ease;
-}
-
-.futuristic-button:hover .button-bg {
-    background: var(--accent-gradient);
-    box-shadow: 0 10px 30px rgba(79, 172, 254, 0.4);
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(79, 172, 254, 0.4) 0%, transparent 70%);
+    transform: translate(-50%, -50%);
+    transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    pointer-events: none;
 }
 
 .futuristic-button:active .button-ripple {
-    opacity: 1;
-    transform: scale(1);
-    transition: all 0.3s ease;
-}
-
-.futuristic-button:disabled .button-bg {
-    background: rgba(255, 255, 255, 0.1);
-    box-shadow: none;
+    width: 400px;
+    height: 400px;
+    opacity: 0;
 }
 
 .futuristic-button:disabled {
+    border-color: rgba(255, 255, 255, 0.1);
     cursor: not-allowed;
+    transform: none;
+}
+
+.futuristic-button:disabled .button-bg {
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.futuristic-button:disabled .button-content {
+    opacity: 0.5;
 }
 
 /* Loading spinner */
@@ -417,54 +408,60 @@ body {
 }
 
 .sentiment-icon {
-    position: relative;
-    width: 80px;
-    height: 80px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 2rem;
-    background: var(--glass-bg);
-    border: 2px solid var(--glass-border);
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.sentiment-icon::before {
-    content: '🤖';
-    z-index: 2;
+    margin-right: 16px;
+    flex-shrink: 0;
     position: relative;
+    background: rgba(255, 255, 255, 0.3);
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.sentiment-icon.positive::before {
-    content: '😊';
+.sentiment-icon.positive {
+    background: #00ff88;
+    box-shadow: 
+        0 0 20px rgba(0, 255, 136, 0.5),
+        0 0 40px rgba(0, 255, 136, 0.2);
+    animation: pulse-positive 2s ease-in-out infinite;
 }
 
-.sentiment-icon.negative::before {
-    content: '😔';
+.sentiment-icon.negative {
+    background: #ff4757;
+    box-shadow: 
+        0 0 20px rgba(255, 71, 87, 0.5),
+        0 0 40px rgba(255, 71, 87, 0.2);
+    animation: pulse-negative 2s ease-in-out infinite;
 }
 
-.icon-glow {
-    position: absolute;
-    top: -10px;
-    left: -10px;
-    right: -10px;
-    bottom: -10px;
-    border-radius: 50%;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-    filter: blur(20px);
+@keyframes pulse-positive {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 20px rgba(0, 255, 136, 0.5),
+            0 0 40px rgba(0, 255, 136, 0.2);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 
+            0 0 30px rgba(0, 255, 136, 0.7),
+            0 0 60px rgba(0, 255, 136, 0.3);
+    }
 }
 
-.sentiment-icon.positive .icon-glow {
-    background: var(--success-gradient);
-    opacity: 0.6;
-}
-
-.sentiment-icon.negative .icon-glow {
-    background: var(--error-gradient);
-    opacity: 0.6;
+@keyframes pulse-negative {
+    0%, 100% { 
+        transform: scale(1);
+        box-shadow: 
+            0 0 20px rgba(255, 71, 87, 0.5),
+            0 0 40px rgba(255, 71, 87, 0.2);
+    }
+    50% { 
+        transform: scale(1.1);
+        box-shadow: 
+            0 0 30px rgba(255, 71, 87, 0.7),
+            0 0 60px rgba(255, 71, 87, 0.3);
+    }
 }
 
 .sentiment-info {
@@ -525,31 +522,65 @@ body {
     height: 100%;
     border-radius: 6px;
     position: relative;
-    transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+    transition: all 1.2s cubic-bezier(0.4, 0, 0.2, 1);
     overflow: hidden;
+    transform: translateZ(0);
 }
 
 .confidence-fill.positive {
-    background: var(--success-gradient);
+    background: linear-gradient(90deg, 
+        #00ff88 0%, 
+        #00d4aa 50%,
+        #00ff88 100%
+    );
+    box-shadow: 
+        0 0 25px rgba(0, 255, 136, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 
 .confidence-fill.negative {
-    background: var(--error-gradient);
+    background: linear-gradient(90deg, 
+        #ff4757 0%, 
+        #ff3742 50%,
+        #ff4757 100%
+    );
+    box-shadow: 
+        0 0 25px rgba(255, 71, 87, 0.4),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -1px 0 rgba(0, 0, 0, 0.2);
 }
 
 .confidence-shine {
     position: absolute;
     top: 0;
-    left: -100%;
-    width: 100%;
+    left: -50%;
+    width: 50%;
     height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.4), transparent);
-    animation: shine 2s ease-in-out infinite;
+    background: linear-gradient(90deg, 
+        transparent, 
+        rgba(255, 255, 255, 0.6), 
+        transparent
+    );
+    animation: enhanced-shine 3s ease-in-out infinite;
+    animation-delay: 0.8s;
 }
 
-@keyframes shine {
-    0% { left: -100%; }
-    100% { left: 100%; }
+@keyframes enhanced-shine {
+    0% { 
+        left: -50%; 
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    80% {
+        opacity: 1;
+    }
+    100% { 
+        left: 100%; 
+        opacity: 0;
+    }
 }
 
 .confidence-particles {
@@ -631,6 +662,10 @@ body {
         font-size: 2.5rem;
     }
     
+    .subtitle {
+        font-size: 1rem;
+    }
+    
     .glass-card {
         padding: 20px;
         border-radius: 15px;
@@ -660,6 +695,10 @@ body {
     
     .title-gradient {
         font-size: 2rem;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem;
     }
     
     .subtitle {
