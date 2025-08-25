@@ -120,8 +120,8 @@ class LightweightSentimentModel:
         try:
             import joblib
             
-            model_names = ["japanese_sentiment_model", "japanese_sentiment_model_ultra", "japanese_sentiment_model_lite"]
-            logger.info(f"Trying to load joblib models in order (ensemble models temporarily disabled): {model_names}")
+            model_names = ["ensemble_sentiment_model_voting", "ensemble_sentiment_model_stacking", "japanese_sentiment_model", "japanese_sentiment_model_ultra", "japanese_sentiment_model_lite"]
+            logger.info(f"Trying to load joblib models in order: {model_names}")
             
             for model_name in model_names:
                 vectorizer_path = self.model_dir / f"{model_name}_vectorizer.pkl"
