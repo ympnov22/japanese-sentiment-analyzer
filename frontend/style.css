@@ -108,13 +108,10 @@ body {
 .title-gradient {
     font-size: 3rem;
     font-weight: 700;
-    background: var(--primary-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    color: white;
     display: block;
     margin-bottom: 10px;
-    text-shadow: 0 0 30px rgba(102, 126, 234, 0.5);
+    text-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
 }
 
 .subtitle {
