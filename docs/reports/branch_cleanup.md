@@ -84,3 +84,27 @@ Repository branches have been successfully cleaned up and reorganized with main 
 - Frontend improvements preserved in dedicated branch
 - Backend health endpoint verified working
 - Clean repository structure achieved
+
+## Backend Re-deployment Under User Account
+
+### Deployment Details
+- **App Name**: japanese-sentiment-analyzer
+- **App URL**: https://japanese-sentiment-analyzer.fly.dev/
+- **Deployment Date/Time**: 2025-08-26 09:35:56Z UTC
+- **Region**: nrt (Tokyo)
+- **Memory Configuration**: 4GB (performance-1x:4096MB) ✅
+- **Machines**: 2 running machines with 4GB each
+
+### Verification Results
+- **Authentication**: ✅ Successfully authenticated with user's Fly.io account (cb1659c5-5646-53c3-ba91-5a98a538af3e@tokens.fly.io)
+- **Memory Confirmation**: ✅ `fly machines list` shows `performance-1x:4096MB` for both machines
+- **Health Check**: ✅ `/health` returns `{"status": "ok", "model_loaded": true, "message": "Japanese Sentiment Analysis API is running (model loaded, 1.0MB)"}`
+- **Prediction Test**: ✅ `/predict` returns valid classification result `{"result": "ネガティブ", "score": 0.5000387707367868}`
+- **Log Status**: ✅ No critical errors found. Model loaded successfully with classes ['ネガティブ' 'ポジティブ']
+
+### Configuration Changes
+- Updated `backend/fly.toml`: Changed app name from "jpn-sentiment-api-nrt" to "japanese-sentiment-analyzer"
+- Maintained existing configuration: primary_region="nrt", memory_mb=4096, cpu_kind="performance"
+
+### Previous Deployment Status
+- **Old App**: https://app-owsnhjvd.fly.dev/ (under Devin's account) - marked for deprecation pending user confirmation

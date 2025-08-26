@@ -1,5 +1,5 @@
 # Fly.io configuration for Japanese Sentiment Analysis API
-app = "jpn-sentiment-api-nrt"
+app = "japanese-sentiment-analyzer"
 primary_region = "nrt"
 
 [build]
