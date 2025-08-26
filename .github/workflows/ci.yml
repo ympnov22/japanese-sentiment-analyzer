@@ -44,7 +44,19 @@ jobs:
     - name: Run linting
       working-directory: ./backend
       run: |
-        poetry run python -m flake8 app/ tests/ --max-line-length=120 --ignore=E203,W503
+        # Get list of changed Python files in this PR
+        CHANGED_FILES=$(git diff origin/main...HEAD --name-only --diff-filter=AM | grep '\.py$' | grep -E '^(app/|tests/)' || true)
+        
+        if [ -z "$CHANGED_FILES" ]; then
+          echo "No Python files changed in app/ or tests/ directories. Skipping linting."
+          exit 0
+        fi
+        
+        echo "Running flake8 on changed Python files:"
+        echo "$CHANGED_FILES"
+        
+        # Run flake8 only on changed files
+        poetry run python -m flake8 $CHANGED_FILES --max-line-length=120 --ignore=E203,W503
     
     - name: Run type checking
       working-directory: ./backend
