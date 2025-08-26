@@ -139,8 +139,8 @@ This task list breaks down all implementation work required for the Japanese tex
 ## Deliverables Checklist
 
 ### Required Deliverables
-- [ ] specification.md (Completed)
-- [ ] task_list.md (This document)
+- [ ] docs/specs/specification.md (Completed)
+- [ ] docs/specs/task_list.md (This document)
 - [ ] FastAPI backend app
 - [ ] HTML+JavaScript frontend
 - [ ] Trained model files (models/ directory)
