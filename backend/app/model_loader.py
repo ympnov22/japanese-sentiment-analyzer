@@ -58,11 +58,22 @@ class LightweightSentimentModel:
             classifier_path = self.model_dir / model_config["classifier_file"]
             vectorizer_path = self.model_dir / model_config["vectorizer_file"]
             
+            logger.info(f"Checking classifier path: {classifier_path}")
+            logger.info(f"Checking vectorizer path: {vectorizer_path}")
+            logger.info(f"Classifier exists: {classifier_path.exists()}")
+            logger.info(f"Vectorizer exists: {vectorizer_path.exists()}")
+            
             if not classifier_path.exists() or not vectorizer_path.exists():
+                logger.error(f"Model files not found. Classifier: {classifier_path.exists()}, Vectorizer: {vectorizer_path.exists()}")
                 return False
                 
             classifier_hash = self._calculate_file_sha256(classifier_path)
             vectorizer_hash = self._calculate_file_sha256(vectorizer_path)
+            
+            logger.info(f"Calculated classifier SHA256: {classifier_hash}")
+            logger.info(f"Expected classifier SHA256: {model_config['classifier_sha256']}")
+            logger.info(f"Calculated vectorizer SHA256: {vectorizer_hash}")
+            logger.info(f"Expected vectorizer SHA256: {model_config['vectorizer_sha256']}")
             
             classifier_valid = classifier_hash == model_config["classifier_sha256"]
             vectorizer_valid = vectorizer_hash == model_config["vectorizer_sha256"]
@@ -112,7 +123,9 @@ class LightweightSentimentModel:
             logger.info("Loading lightweight sentiment model with SHA256 verification...")
             
             ultra_config = self.model_registry["ultra"]
-            if self._verify_model_integrity(ultra_config):
+            verification_result = self._verify_model_integrity(ultra_config)
+            logger.info(f"Ultra model verification result: {verification_result}")
+            if verification_result:
                 logger.info("Loading verified ultra model...")
                 return self._load_ultra_model(ultra_config)
             else:
