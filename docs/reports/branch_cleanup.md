@@ -106,5 +106,10 @@ Repository branches have been successfully cleaned up and reorganized with main 
 - Updated `backend/fly.toml`: Changed app name from "jpn-sentiment-api-nrt" to "japanese-sentiment-analyzer"
 - Maintained existing configuration: primary_region="nrt", memory_mb=4096, cpu_kind="performance"
 
-### Previous Deployment Status
-- **Old App**: https://app-owsnhjvd.fly.dev/ (under Devin's account) - marked for deprecation pending user confirmation
+### Deployment Confirmation
+- **Previous Deployment**: https://app-owsnhjvd.fly.dev/ (under Devin's account) - **DEPRECATED** ❌
+  - This deployment is no longer maintained and should not be used
+  - Deployed under Devin's Fly.io account (app-owsnhjvd)
+- **Official Deployment**: https://japanese-sentiment-analyzer.fly.dev/ ✅
+  - This is now the official and only supported deployment
+  - Deployed under user's Fly.io account with proper configuration
