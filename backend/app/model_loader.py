@@ -10,7 +10,7 @@ import numpy as np
 import logging
 import hashlib
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 from sklearn.feature_extraction.text import HashingVectorizer
 import json
 
@@ -25,11 +25,11 @@ class LightweightSentimentModel:
 
     def __init__(self, model_dir: str = "models"):
         self.model_dir = Path(model_dir)
-        self.vectorizer = None
-        self.coef_ = None
-        self.intercept_ = None
-        self.classes_ = None
-        self.metadata = None
+        self.vectorizer: Optional[HashingVectorizer] = None
+        self.coef_: Optional[np.ndarray] = None
+        self.intercept_: Optional[np.ndarray] = None
+        self.classes_: Optional[np.ndarray] = None
+        self.metadata: Optional[Dict[str, Any]] = None
         self.is_loaded = False
         self._loading_lock = False
         self.model_registry = {
@@ -170,9 +170,10 @@ class LightweightSentimentModel:
             with open(metadata_path, 'r', encoding='utf-8') as f:
                 self.metadata = json.load(f)
 
-            self.metadata["registry_version"] = model_config["version"]
-            self.metadata["accuracy_baseline"] = model_config["accuracy_baseline"]
-            self.metadata["verified_sha256"] = True
+            if self.metadata is not None:
+                self.metadata["registry_version"] = model_config["version"]
+                self.metadata["accuracy_baseline"] = model_config["accuracy_baseline"]
+                self.metadata["verified_sha256"] = True
 
             self.is_loaded = True
             logger.info("Ultra-lightweight model loaded and verified successfully")
@@ -194,19 +195,21 @@ class LightweightSentimentModel:
 
             self.coef_ = weights_data['coef'].astype(np.float32)
             self.intercept_ = weights_data['intercept'].astype(np.float32)
-            self.classes_ = np.array(self.metadata['sentiment_labels'])
+            if self.metadata is not None:
+                self.classes_ = np.array(self.metadata['sentiment_labels'])
 
             del weights_data
             import gc
             gc.collect()
 
-            vectorizer_params = self.metadata.get('vectorizer_params', {})
-            self.vectorizer = self._create_vectorizer(vectorizer_params)
-
-            self.metadata["verified_sha256"] = False
+            if self.metadata is not None:
+                vectorizer_params = self.metadata.get('vectorizer_params', {})
+                self.vectorizer = self._create_vectorizer(vectorizer_params)
+                self.metadata["verified_sha256"] = False
 
             self.is_loaded = True
-            logger.info("Numpy model loaded successfully. Coef shape: %s", self.coef_.shape)
+            if self.coef_ is not None:
+                logger.info("Numpy model loaded successfully. Coef shape: %s", self.coef_.shape)
             return True
 
         except Exception as e:
@@ -238,7 +241,8 @@ class LightweightSentimentModel:
                     with open(metadata_path, 'r', encoding='utf-8') as f:
                         self.metadata = json.load(f)
 
-                    self.metadata["verified_sha256"] = False
+                    if self.metadata is not None:
+                        self.metadata["verified_sha256"] = False
 
                     self.is_loaded = True
                     logger.info("Joblib fallback successful for %s (unverified)", model_name)
@@ -283,13 +287,16 @@ class LightweightSentimentModel:
             else:
                 exp_logits = np.exp(logits[0] - np.max(logits[0]))
                 probabilities = exp_logits / np.sum(exp_logits)
-                prediction = np.argmax(probabilities)
+                prediction = int(np.argmax(probabilities))
 
             if self.metadata and 'index_to_label' in self.metadata:
                 index_to_label = {int(k): v for k, v in self.metadata['index_to_label'].items()}
                 sentiment_label = index_to_label[int(prediction)]
             else:
-                sentiment_label = self.classes_[prediction]
+                if self.classes_ is not None:
+                    sentiment_label = self.classes_[int(prediction)]
+                else:
+                    sentiment_label = "unknown"
 
             confidence_score = float(probabilities[prediction])
 
@@ -310,7 +317,7 @@ class LightweightSentimentModel:
 
     def get_memory_info(self) -> Dict[str, Any]:
         """Get memory usage information with registry details"""
-        info = {
+        info: Dict[str, Any] = {
             "is_loaded": self.is_loaded,
             "model_components": {},
             "model_verified": self.metadata.get("verified_sha256", False) if self.metadata else False,
@@ -319,12 +326,13 @@ class LightweightSentimentModel:
         }
 
         if self.is_loaded:
+            model_components: Dict[str, float] = {}
             if self.coef_ is not None:
-                info["model_components"]["coef_size_mb"] = self.coef_.nbytes / (1024 * 1024)
+                model_components["coef_size_mb"] = self.coef_.nbytes / (1024 * 1024)
             if self.intercept_ is not None:
-                info["model_components"]["intercept_size_mb"] = self.intercept_.nbytes / (1024 * 1024)
-
-            total_size = sum(info["model_components"].values())
+                model_components["intercept_size_mb"] = self.intercept_.nbytes / (1024 * 1024)
+            info["model_components"] = model_components
+            total_size = sum(model_components.values())
             info["total_model_size_mb"] = total_size
 
             try:
