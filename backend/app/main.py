@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 import os
 from app.model_loader import LightweightSentimentModel
 
@@ -37,6 +37,7 @@ class HealthResponse(BaseModel):
     status: str
     model_loaded: bool
     message: str
+    build_metadata: Optional[Dict[str, Any]] = None
 
 sentiment_service = LightweightSentimentModel()
 
@@ -59,13 +60,40 @@ async def startup_event():
 
 @app.get("/health", response_model=HealthResponse)
 async def health_check():
-    """Health check endpoint"""
+    """Health check endpoint with build metadata"""
     memory_info = sentiment_service.get_memory_info()
+    
+    git_commit = os.getenv("GIT_COMMIT", "unknown")
+    model_version = memory_info.get("model_version", "unknown")
+    
+    model_sha256 = "unknown"
+    if sentiment_service.metadata and sentiment_service.metadata.get("verified_sha256"):
+        ultra_config = sentiment_service.model_registry.get("ultra", {})
+        classifier_hash = ultra_config.get('classifier_sha256', 'unknown')[:8]
+        vectorizer_hash = ultra_config.get('vectorizer_sha256', 'unknown')[:8]
+        model_sha256 = f"classifier:{classifier_hash}...,vectorizer:{vectorizer_hash}..."
+    
+    message = f"Japanese Sentiment Analysis API is running"
+    if sentiment_service.is_loaded:
+        message += f" (model loaded, {memory_info.get('total_model_size_mb', 0):.1f}MB)"
+        if memory_info.get("model_verified"):
+            message += " [VERIFIED]"
+        else:
+            message += " [UNVERIFIED]"
+    else:
+        message += " (lazy loading)"
+    
     return HealthResponse(
         status="ok",
         model_loaded=sentiment_service.is_loaded,
-        message=f"Japanese Sentiment Analysis API is running" + 
-                (f" (model loaded, {memory_info.get('total_model_size_mb', 0):.1f}MB)" if sentiment_service.is_loaded else " (lazy loading)")
+        message=message,
+        build_metadata={
+            "git_commit": git_commit,
+            "model_version": model_version,
+            "model_sha256": model_sha256,
+            "model_verified": memory_info.get("model_verified", False),
+            "accuracy_baseline": memory_info.get("accuracy_baseline", "unknown")
+        }
     )
 
 @app.get("/healthz")
