@@ -255,5 +255,130 @@ class TestStressTest:
         assert success_rate >= 0.90, f"Burst load success rate {success_rate:.2%} below 90% threshold"
         assert total_time < 30.0, f"Burst completion time {total_time:.2f}s exceeds 30s threshold"
 
+    def test_batch_processing_performance(self):
+        """Test batch processing meets performance targets"""
+        texts = ["テストテキスト"] * 100
+        
+        start_time = time.time()
+        response = requests.post(
+            f"{self.BASE_URL}/predict/batch",
+            json={"texts": texts},
+            timeout=30
+        )
+        end_time = time.time()
+        
+        assert response.status_code == 200
+        
+        total_time = end_time - start_time
+        texts_per_second = len(texts) / total_time
+        
+        print(f"Batch processing: {len(texts)} texts in {total_time:.2f}s")
+        print(f"Throughput: {texts_per_second:.2f} texts/second")
+        
+        min_throughput = 50  # Reasonable minimum for 100 texts
+        assert texts_per_second > min_throughput, f"Batch throughput {texts_per_second:.2f} below {min_throughput} texts/second"
+        
+        data = response.json()
+        assert "results" in data
+        assert "summary" in data
+        assert "total_processing_time_ms" in data
+        assert len(data["results"]) == len(texts)
+        
+        # Check summary statistics
+        summary = data["summary"]
+        assert summary["total_texts"] == len(texts)
+        assert summary["successful_predictions"] > 0
+        assert "sentiment_distribution" in summary
+        assert "processing_stats" in summary
+    
+    def test_batch_processing_detailed_analysis(self):
+        """Test batch processing with detailed analysis"""
+        texts = [
+            "この映画は本当に素晴らしかった！",
+            "最悪の商品でした。",
+            "普通の品質だと思います。"
+        ]
+        
+        start_time = time.time()
+        response = requests.post(
+            f"{self.BASE_URL}/predict/batch",
+            json={
+                "texts": texts,
+                "include_details": True,
+                "confidence_threshold": 0.7
+            },
+            timeout=15
+        )
+        end_time = time.time()
+        
+        assert response.status_code == 200
+        
+        data = response.json()
+        assert len(data["results"]) == len(texts)
+        
+        for result in data["results"]:
+            assert "text" in result
+            assert "result" in result
+            assert "score" in result
+            assert "all_scores" in result
+            assert "processing_time_ms" in result
+            
+            if "text_length" in result:  # Detailed result
+                assert "word_count" in result or result["word_count"] is None
+        
+        print(f"Detailed batch processing: {len(texts)} texts in {end_time - start_time:.2f}s")
+    
+    def test_api_stats_endpoint(self):
+        """Test the new analysis stats endpoint"""
+        response = requests.get(f"{self.BASE_URL}/analyze/stats", timeout=10)
+        
+        assert response.status_code == 200
+        
+        data = response.json()
+        assert "model_info" in data
+        assert "api_info" in data
+        
+        model_info = data["model_info"]
+        assert "is_loaded" in model_info
+        assert "model_type" in model_info
+        assert "classes" in model_info
+        
+        api_info = data["api_info"]
+        assert "version" in api_info
+        assert "supported_features" in api_info
+        assert "batch_limits" in api_info
+        
+        print(f"API Stats - Model loaded: {model_info['is_loaded']}")
+        print(f"Supported features: {api_info['supported_features']}")
+        print(f"Batch limits: {api_info['batch_limits']}")
+    
+    def test_large_batch_processing(self):
+        """Test processing larger batches efficiently"""
+        texts = [f"テストテキスト{i}" for i in range(500)]
+        
+        start_time = time.time()
+        response = requests.post(
+            f"{self.BASE_URL}/predict/batch",
+            json={"texts": texts},
+            timeout=60  # Allow more time for larger batch
+        )
+        end_time = time.time()
+        
+        assert response.status_code == 200
+        
+        total_time = end_time - start_time
+        texts_per_second = len(texts) / total_time
+        
+        print(f"Large batch processing: {len(texts)} texts in {total_time:.2f}s")
+        print(f"Throughput: {texts_per_second:.2f} texts/second")
+        
+        min_throughput = 100
+        assert texts_per_second > min_throughput, f"Large batch throughput {texts_per_second:.2f} below {min_throughput} texts/second"
+        
+        data = response.json()
+        assert len(data["results"]) == len(texts)
+        assert data["summary"]["total_texts"] == len(texts)
+        assert data["summary"]["successful_predictions"] == len(texts)
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

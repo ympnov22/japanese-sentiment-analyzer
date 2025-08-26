@@ -9,7 +9,7 @@ import numpy as np
 import logging
 from pathlib import Path
 from typing import Dict, Any, Optional, Tuple
-from sklearn.feature_extraction.text import HashingVectorizer
+from sklearn.feature_extraction.text import HashingVectorizer, TfidfVectorizer
 import json
 
 logger = logging.getLogger(__name__)
@@ -30,16 +30,34 @@ class LightweightSentimentModel:
         self.is_loaded = False
         self._loading_lock = False
         
-    def _create_vectorizer(self, vectorizer_params: Dict[str, Any]) -> HashingVectorizer:
-        """Create HashingVectorizer with specified parameters"""
-        return HashingVectorizer(
-            n_features=vectorizer_params.get('n_features', 2**18),
-            alternate_sign=vectorizer_params.get('alternate_sign', False),
-            ngram_range=tuple(vectorizer_params.get('ngram_range', [1, 2])),
-            lowercase=True,
-            norm='l2',
-            binary=False
-        )
+    def _create_vectorizer(self, vectorizer_params: Dict[str, Any]):
+        """Create vectorizer with specified parameters (HashingVectorizer or TfidfVectorizer)"""
+        if vectorizer_params.get('analyzer') == 'char':
+            ngram_range_str = vectorizer_params.get('ngram_range', '(1, 2)')
+            if isinstance(ngram_range_str, str):
+                ngram_range = tuple(map(int, ngram_range_str.strip('()').split(', ')))
+            else:
+                ngram_range = tuple(ngram_range_str)
+            
+            return TfidfVectorizer(
+                analyzer=vectorizer_params.get('analyzer', 'word'),
+                ngram_range=ngram_range,
+                min_df=vectorizer_params.get('min_df', 1),
+                max_df=vectorizer_params.get('max_df', 1.0),
+                max_features=vectorizer_params.get('max_features', None),
+                sublinear_tf=vectorizer_params.get('sublinear_tf', False),
+                norm=vectorizer_params.get('norm', 'l2'),
+                lowercase=vectorizer_params.get('lowercase', True)
+            )
+        else:
+            return HashingVectorizer(
+                n_features=vectorizer_params.get('n_features', 2**18),
+                alternate_sign=vectorizer_params.get('alternate_sign', False),
+                ngram_range=tuple(vectorizer_params.get('ngram_range', [1, 2])),
+                lowercase=True,
+                norm='l2',
+                binary=False
+            )
     
     def load_model(self) -> bool:
         """
@@ -63,6 +81,7 @@ class LightweightSentimentModel:
             
             if not weights_path.exists() or not metadata_path.exists():
                 logger.warning("Numpy weights not found, falling back to joblib models...")
+                logger.info(f"Checking paths: weights={weights_path.exists()}, metadata={metadata_path.exists()}")
                 return self._load_joblib_fallback()
             
             with open(metadata_path, 'r', encoding='utf-8') as f:
@@ -101,12 +120,15 @@ class LightweightSentimentModel:
         try:
             import joblib
             
-            model_names = ["japanese_sentiment_model_ultra", "japanese_sentiment_model_lite"]
+            model_names = ["ensemble_sentiment_model_voting", "ensemble_sentiment_model_stacking", "japanese_sentiment_model", "japanese_sentiment_model_ultra", "japanese_sentiment_model_lite"]
+            logger.info(f"Trying to load models in order with 4GB memory: {model_names}")
             
             for model_name in model_names:
                 vectorizer_path = self.model_dir / f"{model_name}_vectorizer.pkl"
                 classifier_path = self.model_dir / f"{model_name}_classifier.pkl"
                 metadata_path = self.model_dir / f"{model_name}_metadata.json"
+                
+                logger.info(f"Checking {model_name}: vec={vectorizer_path.exists()}, clf={classifier_path.exists()}, meta={metadata_path.exists()}")
                 
                 if all(path.exists() for path in [vectorizer_path, classifier_path, metadata_path]):
                     logger.info(f"Loading joblib model: {model_name}")
@@ -123,6 +145,8 @@ class LightweightSentimentModel:
                     
                     self.is_loaded = True
                     logger.info(f"Joblib fallback successful for {model_name}")
+                    logger.info(f"Loaded vectorizer type: {type(self.vectorizer)}")
+                    logger.info(f"Model classes: {self.classes_}")
                     return True
             
             logger.error("No valid model files found")
@@ -173,13 +197,22 @@ class LightweightSentimentModel:
             
             logger.info(f"Prediction: {sentiment_label}, Confidence: {confidence_score:.3f}")
             
+            if hasattr(self, 'metadata') and 'index_to_label' in self.metadata:
+                index_to_label = {int(k): v for k, v in self.metadata['index_to_label'].items()}
+                all_scores = {
+                    index_to_label[i]: float(probabilities[i]) 
+                    for i in range(len(self.classes_))
+                }
+            else:
+                all_scores = {
+                    str(self.classes_[i]): float(probabilities[i]) 
+                    for i in range(len(self.classes_))
+                }
+            
             return {
                 "result": sentiment_label,
                 "score": confidence_score,
-                "all_scores": {
-                    self.classes_[i]: float(probabilities[i]) 
-                    for i in range(len(self.classes_))
-                }
+                "all_scores": all_scores
             }
             
         except Exception as e:

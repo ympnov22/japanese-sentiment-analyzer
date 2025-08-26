@@ -1,13 +1,19 @@
 """
 Model Training Script for Japanese Sentiment Analysis
-Implements TF-IDF vectorization and Logistic Regression model training
+Implements TF-IDF vectorization and Logistic Regression model training with Pipeline + StratifiedKFold
 """
 
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score, confusion_matrix, classification_report
+from sklearn.pipeline import Pipeline
+from sklearn.model_selection import StratifiedKFold, GridSearchCV
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import (
+    accuracy_score, precision_score, recall_score, f1_score, 
+    confusion_matrix, classification_report, precision_recall_curve
+)
 import joblib
 import json
 import os
@@ -33,6 +39,9 @@ class JapaneseSentimentModel:
         
         self.vectorizer = None
         self.classifier = None
+        self.pipeline = None
+        self.calibrated_classifier = None
+        self.optimal_threshold = 0.5
         self.label_encoder = None
         self.is_trained = False
         
@@ -40,28 +49,28 @@ class JapaneseSentimentModel:
         self.label_to_index = {label: idx for idx, label in enumerate(self.sentiment_labels)}
         self.index_to_label = {idx: label for idx, label in enumerate(self.sentiment_labels)}
     
-    def create_tfidf_vectorizer(self, max_features=30000, ngram_range=(1, 2)):
+    def create_tfidf_vectorizer(self, max_features=30000, ngram_range=(3, 5)):
         """
-        Create and configure TF-IDF vectorizer for Japanese text (Classic-lite configuration)
+        Create and configure TF-IDF vectorizer optimized for Japanese text
         
         Args:
             max_features (int): Maximum number of features (default: 30000 for memory optimization)
-            ngram_range (tuple): N-gram range for feature extraction
+            ngram_range (tuple): N-gram range for feature extraction (optimized for Japanese)
             
         Returns:
             TfidfVectorizer: Configured vectorizer
         """
-        print(f"Creating lightweight TF-IDF vectorizer with max_features={max_features}, ngram_range={ngram_range}")
+        print(f"Creating optimized TF-IDF vectorizer with max_features={max_features}, ngram_range={ngram_range}")
         
         self.vectorizer = TfidfVectorizer(
-            max_features=max_features,
+            analyzer='char',
             ngram_range=ngram_range,
-            lowercase=True,
-            stop_words=None,  # No built-in Japanese stop words in sklearn
-            token_pattern=r'(?u)\b\w+\b',  # Basic tokenization
-            min_df=2,  # Ignore terms that appear in less than 2 documents
-            max_df=0.95,  # Ignore terms that appear in more than 95% of documents
-            sublinear_tf=True  # Apply sublinear tf scaling for memory efficiency
+            min_df=2,
+            max_df=0.95,
+            max_features=max_features,
+            sublinear_tf=True,
+            norm='l2',
+            lowercase=True
         )
         
         return self.vectorizer
@@ -109,7 +118,7 @@ class JapaneseSentimentModel:
     
     def train(self, train_df, val_df=None):
         """
-        Train the sentiment analysis model
+        Train the sentiment analysis model using Pipeline + StratifiedKFold
         
         Args:
             train_df (pd.DataFrame): Training dataset
@@ -118,45 +127,100 @@ class JapaneseSentimentModel:
         Returns:
             dict: Training results and metrics
         """
-        print("\n=== Model Training Started ===")
+        print("\n=== Model Training Started (Pipeline + StratifiedKFold) ===")
         
         X_train_text = train_df['text'].values
         y_train = self.prepare_labels(train_df['sentiment'])
         
         print(f"Training data: {len(X_train_text)} samples")
+        print(f"Label distribution: {dict(zip(*np.unique(y_train, return_counts=True)))}")
         
-        if self.vectorizer is None:
-            self.create_tfidf_vectorizer()
+        pipeline = Pipeline([
+            ('tfidf', TfidfVectorizer(
+                analyzer='char',
+                ngram_range=(3, 5),
+                min_df=2,
+                max_df=0.95,
+                max_features=30000,
+                sublinear_tf=True,
+                norm='l2',
+                lowercase=True
+            )),
+            ('classifier', LogisticRegression(
+                class_weight='balanced',
+                max_iter=200,
+                n_jobs=-1,
+                random_state=42
+            ))
+        ])
         
-        print("Fitting TF-IDF vectorizer...")
-        X_train_tfidf = self.vectorizer.fit_transform(X_train_text)
-        print(f"TF-IDF feature matrix shape: {X_train_tfidf.shape}")
+        param_grid = {
+            'classifier__C': [0.1, 1.0, 10.0]
+        }
         
-        if self.classifier is None:
-            self.create_classifier()
+        cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         
-        print("Training Logistic Regression classifier...")
-        self.classifier.fit(X_train_tfidf, y_train)
+        print("Performing GridSearchCV with StratifiedKFold...")
+        grid_search = GridSearchCV(
+            pipeline,
+            param_grid,
+            cv=cv,
+            scoring='f1_macro',
+            n_jobs=-1,
+            verbose=1
+        )
         
-        y_train_pred = self.classifier.predict(X_train_tfidf)
-        train_accuracy = accuracy_score(y_train, y_train_pred)
+        grid_search.fit(X_train_text, y_train)
         
-        print(f"Training accuracy: {train_accuracy:.4f}")
+        print(f"Best parameters: {grid_search.best_params_}")
+        print(f"Best CV score: {grid_search.best_score_:.4f}")
+        
+        self.pipeline = grid_search.best_estimator_
+        self.vectorizer = self.pipeline.named_steps['tfidf']
+        self.classifier = self.pipeline.named_steps['classifier']
+        
+        print("Applying probability calibration...")
+        self.calibrated_classifier = CalibratedClassifierCV(
+            self.pipeline,
+            method='sigmoid',
+            cv=3
+        )
+        self.calibrated_classifier.fit(X_train_text, y_train)
+        
+        if val_df is not None:
+            X_val_text = val_df['text'].values
+            y_val = self.prepare_labels(val_df['sentiment'])
+            
+            y_val_proba = self.calibrated_classifier.predict_proba(X_val_text)[:, 1]
+            
+            precision, recall, thresholds = precision_recall_curve(y_val, y_val_proba)
+            f1_scores = 2 * (precision * recall) / (precision + recall + 1e-8)
+            optimal_idx = np.argmax(f1_scores)
+            self.optimal_threshold = thresholds[optimal_idx]
+            
+            print(f"Optimal threshold: {self.optimal_threshold:.4f}")
+            print(f"Optimal F1 score: {f1_scores[optimal_idx]:.4f}")
+        else:
+            self.optimal_threshold = 0.5
         
         self.is_trained = True
         
-        val_results = None
-        if val_df is not None:
-            print("Evaluating on validation set...")
-            val_results = self.evaluate(val_df, dataset_name="Validation")
-        
         training_results = {
-            'train_accuracy': train_accuracy,
+            'best_params': grid_search.best_params_,
+            'best_cv_score': grid_search.best_score_,
+            'optimal_threshold': self.optimal_threshold,
             'train_samples': len(X_train_text),
-            'feature_count': X_train_tfidf.shape[1],
-            'validation_results': val_results,
+            'feature_count': self.vectorizer.transform(['sample']).shape[1],
             'training_time': datetime.now().isoformat()
         }
+        
+        if val_df is not None:
+            val_results = self.evaluate(val_df, dataset_name="Validation")
+            training_results.update({
+                'val_accuracy': val_results['accuracy'],
+                'val_f1': val_results['f1_score'],
+                'val_samples': val_results['sample_count']
+            })
         
         print("=== Model Training Completed ===\n")
         
@@ -234,7 +298,7 @@ class JapaneseSentimentModel:
     
     def predict(self, text):
         """
-        Predict sentiment for a single text
+        Predict sentiment using calibrated classifier and optimal threshold
         
         Args:
             text (str): Input text for sentiment analysis
@@ -245,10 +309,10 @@ class JapaneseSentimentModel:
         if not self.is_trained:
             raise ValueError("Model must be trained before prediction")
         
-        text_tfidf = self.vectorizer.transform([text])
+        probabilities = self.calibrated_classifier.predict_proba([text])[0]
         
-        prediction = self.classifier.predict(text_tfidf)[0]
-        probabilities = self.classifier.predict_proba(text_tfidf)[0]
+        positive_prob = probabilities[1]
+        prediction = 1 if positive_prob > self.optimal_threshold else 0
         
         sentiment = self.index_to_label[prediction]
         confidence = float(probabilities[prediction])
@@ -259,7 +323,8 @@ class JapaneseSentimentModel:
             'probabilities': {
                 label: float(prob) 
                 for label, prob in zip(self.sentiment_labels, probabilities)
-            }
+            },
+            'threshold_used': self.optimal_threshold
         }
     
     def predict_batch(self, texts):
@@ -299,7 +364,7 @@ class JapaneseSentimentModel:
     
     def save_model(self, model_name="japanese_sentiment_model"):
         """
-        Save the trained model and vectorizer
+        Save the trained Pipeline model components for compatibility with model_loader
         
         Args:
             model_name (str): Base name for saved files
@@ -317,6 +382,14 @@ class JapaneseSentimentModel:
         joblib.dump(self.classifier, classifier_path, compress=('gzip', 3))
         print(f"Classifier saved to: {classifier_path} (compressed)")
         
+        calibrated_path = self.model_dir / f"{model_name}_calibrated.pkl"
+        joblib.dump(self.calibrated_classifier, calibrated_path, compress=('gzip', 3))
+        print(f"Calibrated classifier saved to: {calibrated_path} (compressed)")
+        
+        pipeline_path = self.model_dir / f"{model_name}_pipeline.pkl"
+        joblib.dump(self.pipeline, pipeline_path, compress=('gzip', 3))
+        print(f"Pipeline saved to: {pipeline_path} (compressed)")
+        
         vectorizer_params = {k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v 
                            for k, v in self.vectorizer.get_params().items()}
         classifier_params = {k: str(v) if not isinstance(v, (str, int, float, bool, type(None))) else v 
@@ -324,12 +397,21 @@ class JapaneseSentimentModel:
         
         metadata = {
             'model_name': model_name,
+            'model_type': 'Pipeline_Calibrated',
             'sentiment_labels': self.sentiment_labels,
             'label_to_index': self.label_to_index,
             'index_to_label': self.index_to_label,
             'vectorizer_params': vectorizer_params,
             'classifier_params': classifier_params,
+            'optimal_threshold': getattr(self, 'optimal_threshold', 0.5),
             'feature_count': len(self.vectorizer.get_feature_names_out()),
+            'improvements': {
+                'pipeline_used': True,
+                'stratified_cv': True,
+                'probability_calibration': True,
+                'threshold_optimization': True,
+                'char_ngrams': True
+            },
             'save_time': datetime.now().isoformat()
         }
         
@@ -343,6 +425,8 @@ class JapaneseSentimentModel:
         return {
             'vectorizer_path': str(vectorizer_path),
             'classifier_path': str(classifier_path),
+            'calibrated_path': str(calibrated_path),
+            'pipeline_path': str(pipeline_path),
             'metadata_path': str(metadata_path)
         }
     

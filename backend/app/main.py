@@ -3,9 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 import logging
 from pathlib import Path
-from typing import Dict, Any
+from typing import Dict, Any, List
 import os
 from app.model_loader import LightweightSentimentModel
+from app.models.batch_request import (
+    BatchPredictRequest, BatchPredictResponse
+)
+from app.services.batch_service import BatchSentimentService
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -39,22 +43,13 @@ class HealthResponse(BaseModel):
     message: str
 
 sentiment_service = LightweightSentimentModel()
+batch_service = BatchSentimentService(sentiment_service)
 
 @app.on_event("startup")
 async def startup_event():
-    """Initialize API and preload model"""
-    logger.info("Starting Japanese Sentiment Analysis API with model preloading...")
-    
-    try:
-        logger.info("Loading sentiment model during startup...")
-        if sentiment_service.load_model():
-            logger.info("Model preloaded successfully during startup")
-        else:
-            logger.warning("Model preloading failed, will fall back to lazy loading")
-    except Exception as e:
-        logger.error(f"Error during model preloading: {str(e)}")
-        logger.warning("Continuing with lazy loading as fallback")
-    
+    """Initialize API with lazy loading strategy"""
+    logger.info("Starting Japanese Sentiment Analysis API with lazy loading strategy...")
+    logger.info("Models will be loaded on first prediction request to reduce startup memory usage")
     logger.info("API ready for requests")
 
 @app.get("/health", response_model=HealthResponse)
@@ -90,4 +85,59 @@ async def predict_sentiment(request: PredictRequest):
         raise
     except Exception as e:
         logger.error(f"Unexpected error in predict endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.post("/predict/batch", response_model=BatchPredictResponse)
+async def predict_batch_sentiment(request: BatchPredictRequest):
+    """Predict sentiment for multiple Japanese texts"""
+    try:
+        logger.info(f"Received batch prediction request for {len(request.texts)} texts")
+        
+        if len(request.texts) > 1000:
+            raise HTTPException(status_code=400, detail="Batch size exceeds maximum limit of 1000 texts")
+        
+        result = await batch_service.process_batch(request)
+        
+        logger.info(f"Batch processing completed: {result.summary['successful_predictions']}/{result.summary['total_texts']} successful")
+        
+        return result
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error in batch predict endpoint: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")
+
+@app.get("/analyze/stats")
+async def get_analysis_stats():
+    """Get analysis statistics and model information"""
+    try:
+        memory_info = sentiment_service.get_memory_info()
+        
+        stats = {
+            "model_info": {
+                "is_loaded": sentiment_service.is_loaded,
+                "model_type": "Binary Classification (ポジティブ/ネガティブ)",
+                "memory_usage_mb": memory_info.get('total_model_size_mb', 0),
+                "classes": ["ネガティブ", "ポジティブ"]
+            },
+            "api_info": {
+                "version": "1.0.0",
+                "supported_features": [
+                    "single_prediction",
+                    "batch_prediction", 
+                    "detailed_analysis",
+                    "custom_thresholds"
+                ],
+                "batch_limits": {
+                    "max_texts_per_batch": 1000,
+                    "max_text_length": 1000
+                }
+            }
+        }
+        
+        return stats
+        
+    except Exception as e:
+        logger.error(f"Error getting analysis stats: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
