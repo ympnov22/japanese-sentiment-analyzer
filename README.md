@@ -48,9 +48,12 @@ japanese-sentiment-analyzer/
 │   ├── style.css                # Stylesheet
 │   ├── script.js                # JavaScript
 │   └── .env                     # Frontend configuration
-├── README.md                    # This file
-├── specification.md             # Detailed specification
-└── task_list.md                 # Implementation tasks
+├── docs/                        # Documentation (see docs/README.md)
+│   ├── specs/                   # Technical specifications
+│   ├── reports/                 # Current reports and analysis
+│   ├── archive/                 # Historical development documentation
+│   └── releases/                # Release notes and changelog
+├── README.md                    # This file (see docs/README.md for full docs)
 ```
 
 ## Setup Instructions

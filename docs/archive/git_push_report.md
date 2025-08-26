@@ -51,8 +51,8 @@
 ## Files Successfully Pushed
 
 ### Core Documentation
-- ✅ `specification.md` - Project specification document
-- ✅ `task_list.md` - Implementation task breakdown
+- ✅ `docs/specs/specification.md` - Project specification document
+- ✅ `docs/specs/task_list.md` - Implementation task breakdown
 - ✅ `README.md` - Setup and usage instructions
 - ✅ `LICENSE` - MIT license
 - ✅ `.gitignore` - Git ignore rules for Python/FastAPI

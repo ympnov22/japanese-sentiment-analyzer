@@ -161,7 +161,7 @@ japanese-sentiment-analyzer/
 │   └── .env                     # Frontend configuration
 ├── README.md                    # Setup instructions
 ├── test_predict.py              # Testing script
-└── specification.md             # This document
+└── docs/specs/specification.md  # This document
 ```
 
 ## 9. Quality Assurance

@@ -68,8 +68,8 @@ japanese-sentiment-analyzer/
 ├── frontend/
 │   ├── .env                     # Frontend configuration
 │   └── (ready for HTML/CSS/JS files)
-├── specification.md             # Project specification
-├── task_list.md                 # Implementation task list
+├── docs/specs/specification.md  # Project specification
+├── docs/specs/task_list.md      # Implementation task list
 └── phase1_completion_report.md  # This report
 ```
 
