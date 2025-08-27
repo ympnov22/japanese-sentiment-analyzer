@@ -16,9 +16,18 @@
 - **Features**: Modern TailwindCSS UI, dark mode toggle, responsive design, history functionality
 
 ## API Configuration
+
+### Production Backend
 - **Backend URL**: https://japanese-sentiment-analyzer.fly.dev/
 - **Health Endpoint**: /health
 - **Prediction Endpoint**: /predict
+
+### Staging Backend
+- **Backend URL**: https://japanese-sentiment-analyzer-staging.fly.dev/
+- **Health Endpoint**: /health
+- **Prediction Endpoint**: /predict
+- **Memory**: 512MB (shared CPU)
+- **CORS**: Configured to allow both production and staging frontend origins
 
 ## Verification Steps
 1. Frontend loads successfully
@@ -36,10 +45,19 @@ flyctl deploy --app japanese-sentiment-frontend
 ```
 
 ### Staging Deployment
+
+#### Frontend Staging
 ```bash
 cd frontend/
 export PATH="/home/ubuntu/.fly/bin:$PATH"
 flyctl deploy --app japanese-sentiment-frontend-staging
+```
+
+#### Backend Staging
+```bash
+cd backend/
+export PATH="/home/ubuntu/.fly/bin:$PATH"
+flyctl deploy --config fly.staging.toml --app japanese-sentiment-analyzer-staging
 ```
 
 ## Architecture
@@ -60,8 +78,12 @@ The frontend is a static HTML/CSS/JavaScript application served by nginx:
 - Ensure CORS headers are properly configured on backend
 - Check network tab for failed API requests
 
-### Known Issues
-- **Staging CORS**: The staging URL `https://japanese-sentiment-frontend-staging.fly.dev` needs to be added to the backend's ALLOWED_ORIGINS environment variable for API connectivity to work
+### Configuration Notes
+- **CORS Policy**: Backend ALLOWED_ORIGINS includes both production and staging frontend URLs:
+  - Production: `https://japanese-sentiment-frontend.fly.dev`
+  - Staging: `https://japanese-sentiment-frontend-staging.fly.dev`
+  - Local development: `http://localhost:3000`, `http://localhost:5173`, `http://127.0.0.1:3000`, `http://127.0.0.1:5173`
+- **Environment Detection**: Frontend automatically detects staging vs production environment for API URL configuration
 - **Dark Mode**: Theme preference is stored in localStorage and persists across sessions
 - **History**: Analysis history is stored locally and limited to 5 most recent items
 
