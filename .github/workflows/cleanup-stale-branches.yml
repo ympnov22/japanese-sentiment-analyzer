@@ -1,0 +1,150 @@
+name: Cleanup Stale Branches
+
+on:
+  schedule:
+    # Run weekly on Sundays at 2 AM UTC
+    - cron: '0 2 * * 0'
+  workflow_dispatch:
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        token: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Setup Git
+      run: |
+        git config --global user.name "github-actions[bot]"
+        git config --global user.email "github-actions[bot]@users.noreply.github.com"
+    
+    - name: Clean up stale branches
+      run: |
+        echo "Cleaning up stale branches (>30 days old with no open PRs)..."
+        
+        # Get all remote branches except main and HEAD
+        git fetch --all --prune
+        
+        # Get current date in seconds
+        current_date=$(date +%s)
+        cutoff_date=$((current_date - 30*24*60*60))  # 30 days ago
+        
+        # List all remote branches except main
+        for branch in $(git branch -r --format='%(refname:short)' | grep -v 'origin/HEAD' | grep -v 'origin/main'); do
+          branch_name=${branch#origin/}
+          
+          # Skip main branch
+          if [ "$branch_name" = "main" ]; then
+            continue
+          fi
+          
+          # Get last commit date for the branch
+          last_commit_date=$(git log -1 --format=%ct "$branch" 2>/dev/null || echo "0")
+          
+          # Check if branch is older than 30 days
+          if [ "$last_commit_date" -lt "$cutoff_date" ]; then
+            echo "Branch $branch_name is older than 30 days (last commit: $(date -d @$last_commit_date))"
+            
+            # Check if there's an open PR for this branch
+            pr_count=$(gh pr list --head "$branch_name" --state open --json number --jq length)
+            
+            if [ "$pr_count" -eq "0" ]; then
+              echo "No open PR found for $branch_name, marking for deletion"
+              
+              # Delete the remote branch
+              git push origin --delete "$branch_name" || echo "Failed to delete $branch_name"
+              echo "Deleted stale branch: $branch_name"
+            else
+              echo "Branch $branch_name has open PR(s), skipping deletion"
+            fi
+          fi
+        done
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    
+    - name: Update branch status report
+      run: |
+        echo "Updating branch status report..."
+        
+        # Create reports directory if it doesn't exist
+        mkdir -p docs/reports
+        
+        # Generate branch status report
+        cat > docs/reports/branch_status.md << 'EOF'
+        # Branch Status Report
+        
+        Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+        
+        ## Active Branches
+        
+        | Branch | Last Activity | Status | Open PRs |
+        |--------|---------------|--------|----------|
+        EOF
+        
+        # Add branch information
+        for branch in $(git branch -r --format='%(refname:short)' | grep -v 'origin/HEAD' | sort); do
+          branch_name=${branch#origin/}
+          
+          if [ "$branch_name" = "main" ]; then
+            continue
+          fi
+          
+          last_commit=$(git log -1 --format='%ci' "$branch" 2>/dev/null || echo "Unknown")
+          last_commit_short=$(echo "$last_commit" | cut -d' ' -f1)
+          
+          # Check for open PRs
+          pr_count=$(gh pr list --head "$branch_name" --state open --json number --jq length 2>/dev/null || echo "0")
+          
+          if [ "$pr_count" -gt "0" ]; then
+            pr_status="✅ $pr_count open"
+            status="Active"
+          else
+            pr_status="❌ None"
+            
+            # Check if branch is stale
+            last_commit_date=$(git log -1 --format=%ct "$branch" 2>/dev/null || echo "0")
+            current_date=$(date +%s)
+            days_old=$(( (current_date - last_commit_date) / 86400 ))
+            
+            if [ "$days_old" -gt "30" ]; then
+              status="🔄 Stale ($days_old days)"
+            else
+              status="⏳ Recent"
+            fi
+          fi
+          
+          echo "| \`$branch_name\` | $last_commit_short | $status | $pr_status |" >> docs/reports/branch_status.md
+        done
+        
+        # Add footer
+        cat >> docs/reports/branch_status.md << 'EOF'
+        
+        ## Cleanup Policy
+        
+        - Branches older than 30 days with no open PRs are automatically deleted
+        - This report is updated weekly via GitHub Actions
+        - Protected branches (main) are never deleted
+        
+        ## Legend
+        
+        - ✅ Active branch with open PR(s)
+        - ⏳ Recent branch (< 30 days old)
+        - 🔄 Stale branch (> 30 days old, candidate for deletion)
+        - ❌ No open PRs
+        EOF
+        
+        # Commit the updated report if there are changes
+        if ! git diff --quiet docs/reports/branch_status.md 2>/dev/null; then
+          git add docs/reports/branch_status.md
+          git commit -m "chore: update branch status report [skip ci]"
+          git push origin main
+          echo "Branch status report updated"
+        else
+          echo "No changes to branch status report"
+        fi
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

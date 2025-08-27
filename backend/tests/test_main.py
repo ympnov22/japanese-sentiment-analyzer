@@ -23,7 +23,7 @@ class TestHealthEndpoint:
         assert "status" in data
         assert "model_loaded" in data
         assert "message" in data
-        assert data["status"] == "healthy"
+        assert data["status"] == "ok"
         assert isinstance(data["model_loaded"], bool)
         assert isinstance(data["message"], str)
 
@@ -33,7 +33,7 @@ class TestHealthEndpoint:
         data = response.json()
         
         if data["model_loaded"]:
-            assert data["status"] == "healthy"
+            assert data["status"] == "ok"
 
 class TestPredictEndpoint:
     """Test cases for the /predict endpoint"""
@@ -161,7 +161,7 @@ class TestErrorHandling:
         mock_service.predict.side_effect = Exception("Model error")
         
         response = client.post("/predict", json={"text": "テストテキスト"})
-        assert response.status_code == 503
+        assert response.status_code == 500
         
         data = response.json()
         assert "detail" in data

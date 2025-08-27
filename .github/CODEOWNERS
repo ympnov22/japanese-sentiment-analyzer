@@ -1,0 +1,17 @@
+# Global code owners
+* @ympnov22
+
+# Backend code
+/backend/ @ympnov22
+
+# Model files require extra review
+/backend/models/ @ympnov22
+/backend/scripts/ @ympnov22
+
+# CI/CD configuration
+/.github/ @ympnov22
+/backend/fly*.toml @ympnov22
+
+# Documentation
+/docs/ @ympnov22
+README.md @ympnov22
