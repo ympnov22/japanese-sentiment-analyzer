@@ -7,6 +7,14 @@
 - **Memory**: 512MB
 - **Machines**: 1 (no autoscaling)
 
+## Staging Frontend
+- **URL**: https://japanese-sentiment-frontend-staging.fly.dev/
+- **App Name**: japanese-sentiment-frontend-staging
+- **Region**: nrt (Tokyo)
+- **Memory**: 256MB
+- **Machines**: 1 (no autoscaling)
+- **Features**: Modern TailwindCSS UI, dark mode toggle, responsive design, history functionality
+
 ## API Configuration
 - **Backend URL**: https://japanese-sentiment-analyzer.fly.dev/
 - **Health Endpoint**: /health
@@ -19,10 +27,19 @@
 4. No CORS errors in browser console
 
 ## Deployment Commands
+
+### Production Deployment
 ```bash
 cd frontend/
 export PATH="/home/ubuntu/.fly/bin:$PATH"
 flyctl deploy --app japanese-sentiment-frontend
+```
+
+### Staging Deployment
+```bash
+cd frontend/
+export PATH="/home/ubuntu/.fly/bin:$PATH"
+flyctl deploy --app japanese-sentiment-frontend-staging
 ```
 
 ## Architecture
@@ -42,3 +59,16 @@ The frontend is a static HTML/CSS/JavaScript application served by nginx:
 - Verify backend health endpoint is accessible
 - Ensure CORS headers are properly configured on backend
 - Check network tab for failed API requests
+
+### Known Issues
+- **Staging CORS**: The staging URL `https://japanese-sentiment-frontend-staging.fly.dev` needs to be added to the backend's ALLOWED_ORIGINS environment variable for API connectivity to work
+- **Dark Mode**: Theme preference is stored in localStorage and persists across sessions
+- **History**: Analysis history is stored locally and limited to 5 most recent items
+
+## UI Features (Modern Version)
+- **TailwindCSS**: Modern utility-first CSS framework via CDN
+- **Dark Mode**: Manual toggle with auto-detection of system preference
+- **Responsive Design**: Mobile-first approach with proper breakpoints
+- **Accessibility**: WCAG AA compliant with keyboard navigation and ARIA labels
+- **History**: Last 5 analysis results with click-to-restore functionality
+- **Color System**: Slate backgrounds, emerald (positive) / rose (negative) sentiment indicators

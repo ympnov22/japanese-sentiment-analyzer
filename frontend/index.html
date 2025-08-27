@@ -1,58 +1,104 @@
 <!DOCTYPE html>
-<html lang="ja">
+<html lang="ja" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>日本語感情分析</title>
+    <title>日本語感情分析 - Japanese Sentiment Analysis</title>
+    <meta name="description" content="日本語テキストの感情分析を行うWebアプリケーション。ポジティブ・ネガティブの判定と信頼度を表示します。">
+    <meta property="og:title" content="日本語感情分析 - Japanese Sentiment Analysis">
+    <meta property="og:description" content="日本語テキストの感情分析を行うWebアプリケーション">
+    <meta property="og:type" content="website">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🎭</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: ['selector', '[data-theme="dark"]'],
+            theme: {
+                extend: {
+                    fontFamily: {
+                        'sans': ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', 'Inter', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
     <link rel="stylesheet" href="style.css">
 </head>
-<body>
-    <div class="container">
-        <header>
-            <h1>日本語感情分析</h1>
-            <div id="api-status" class="api-status hidden"></div>
+<body class="min-h-screen bg-slate-50 dark:bg-slate-900 text-slate-900 dark:text-slate-100 font-sans transition-colors duration-200">
+    <div class="container mx-auto max-w-4xl px-4 py-8 min-h-screen">
+        <header class="text-center mb-12">
+            <div class="flex justify-between items-center mb-6">
+                <div class="flex-1"></div>
+                <h1 class="text-3xl md:text-4xl font-bold text-slate-800 dark:text-slate-100">日本語感情分析</h1>
+                <div class="flex-1 flex justify-end">
+                    <button id="theme-toggle" class="p-2 rounded-lg bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-900" aria-label="テーマを切り替え">
+                        <svg id="sun-icon" class="w-5 h-5 text-slate-600 dark:text-slate-300 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                        </svg>
+                        <svg id="moon-icon" class="w-5 h-5 text-slate-600 dark:text-slate-300 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <p class="text-lg text-slate-600 dark:text-slate-400 mb-4">日本語テキストの感情を分析し、ポジティブ・ネガティブを判定します</p>
+            <div id="api-status" class="hidden p-3 rounded-lg text-sm font-medium"></div>
         </header>
 
-        <main>
-            <div class="input-section">
-                <label for="text-input">分析したい日本語テキストを入力してください</label>
-                <textarea 
-                    id="text-input" 
-                    placeholder="分析したい日本語テキストを入力してください"
-                    maxlength="1000"
-                    rows="6"
-                ></textarea>
-                <div class="input-info">
-                    <span id="char-count">0</span> / 1000文字
+        <main class="space-y-8">
+            <div class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
+                <div class="space-y-4">
+                    <label for="text-input" class="block text-sm font-medium text-slate-700 dark:text-slate-300">分析したい日本語テキストを入力してください</label>
+                    <textarea 
+                        id="text-input" 
+                        placeholder="日本語の文章を入力してください"
+                        maxlength="1000"
+                        rows="6"
+                        class="w-full px-4 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder-slate-500 dark:placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-vertical transition-colors duration-150"
+                    ></textarea>
+                    <div class="flex justify-between items-center text-sm">
+                        <div id="input-error" class="text-red-600 dark:text-red-400 hidden"></div>
+                        <div class="text-slate-500 dark:text-slate-400">
+                            <span id="char-count">0</span> / 1000文字
+                        </div>
+                    </div>
                 </div>
-                <div id="input-error" class="error-message hidden"></div>
-            </div>
 
-            <div class="button-section">
-                <button id="analyze-btn" class="analyze-button">
-                    <span class="button-text">感情を判定</span>
-                    <div class="loading-spinner hidden"></div>
-                </button>
-            </div>
-
-            <div id="result-section" class="result-section hidden">
-                <h2>判定結果</h2>
-                <div class="result-content">
-                    <div class="sentiment-result">
-                        <span class="sentiment-label" id="sentiment-label"></span>
-                        <span class="confidence-score" id="confidence-score"></span>
-                    </div>
-                    <div class="confidence-bar">
-                        <div class="confidence-fill" id="confidence-fill"></div>
-                    </div>
+                <div class="mt-6 text-center">
+                    <button id="analyze-btn" class="inline-flex items-center px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-slate-800 disabled:cursor-not-allowed min-w-[140px]">
+                        <span id="button-text">感情分析</span>
+                        <svg id="loading-spinner" class="hidden animate-spin ml-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                    </button>
                 </div>
             </div>
 
-            <div id="error-section" class="error-section hidden">
-                <h2>エラー</h2>
-                <div class="error-content">
-                    <p id="error-message"></p>
-                    <button id="retry-btn" class="retry-button">再試行</button>
+            <div id="result-section" class="hidden bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
+                <h2 class="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">判定結果</h2>
+                <div class="space-y-4">
+                    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                        <div id="sentiment-label" class="inline-flex items-center px-4 py-2 rounded-lg font-semibold text-lg"></div>
+                        <div id="confidence-score" class="text-slate-600 dark:text-slate-400 font-medium"></div>
+                    </div>
+                    <div class="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
+                        <div id="confidence-fill" class="h-3 rounded-full transition-all duration-500 ease-out"></div>
+                    </div>
+                    <div id="analysis-time" class="text-xs text-slate-500 dark:text-slate-400"></div>
+                </div>
+            </div>
+
+            <div id="error-section" class="hidden bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-6">
+                <h2 class="text-lg font-semibold text-red-800 dark:text-red-200 mb-2">エラー</h2>
+                <p id="error-message" class="text-red-700 dark:text-red-300 mb-4"></p>
+                <button id="retry-btn" class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white font-medium rounded-lg transition-colors duration-150 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 dark:focus:ring-offset-red-900">再試行</button>
+            </div>
+
+            <div id="history-section" class="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 md:p-8">
+                <h2 class="text-xl font-semibold text-slate-800 dark:text-slate-100 mb-4">最近の分析履歴</h2>
+                <div id="history-list" class="space-y-3">
+                    <p class="text-slate-500 dark:text-slate-400 text-sm">まだ分析履歴がありません</p>
                 </div>
             </div>
         </main>
