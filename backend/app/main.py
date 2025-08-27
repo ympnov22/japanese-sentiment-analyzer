@@ -18,7 +18,8 @@ app = FastAPI(
 allowed_origins = os.getenv(
     "ALLOWED_ORIGINS",
     "http://localhost:3000,http://localhost:5173,http://127.0.0.1:3000,http://127.0.0.1:5173,"
-    "https://jpn-sentiment-web-nrt.fly.dev,https://japanese-sentiment-analyzer-app-50t1mfcr.devinapps.com"
+    "https://jpn-sentiment-web-nrt.fly.dev,https://japanese-sentiment-analyzer-app-50t1mfcr.devinapps.com,"
+    "https://japanese-sentiment-frontend.fly.dev"
 ).split(",")
 
 app.add_middleware(
