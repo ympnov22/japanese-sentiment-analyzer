@@ -1,8 +1,7 @@
 const CONFIG = {
     API_BASE_URL: '', // Will be loaded from environment
     MAX_TEXT_LENGTH: 1000,
-    DEBUG: true, // Set to false for production
-    HISTORY_MAX_ITEMS: 5
+    DEBUG: true // Set to false for production
 };
 
 const elements = {
@@ -23,16 +22,13 @@ const elements = {
     themeToggle: null,
     sunIcon: null,
     moonIcon: null,
-    historySection: null,
-    historyList: null,
     analysisTime: null
 };
 
 const state = {
     isLoading: false,
     apiHealthy: false,
-    currentTheme: 'light',
-    analysisHistory: []
+    currentTheme: 'light'
 };
 
 function log(message, ...args) {
@@ -83,8 +79,6 @@ function initializeElements() {
     elements.themeToggle = document.getElementById('theme-toggle');
     elements.sunIcon = document.getElementById('sun-icon');
     elements.moonIcon = document.getElementById('moon-icon');
-    elements.historySection = document.getElementById('history-section');
-    elements.historyList = document.getElementById('history-list');
     elements.analysisTime = document.getElementById('analysis-time');
     
     log('DOM elements initialized');
@@ -322,8 +316,6 @@ function showResult(sentiment, confidence) {
     
     elements.resultSection.classList.remove('hidden');
     
-    addToHistory(elements.textInput.value.trim(), sentiment, confidence, now);
-    
     elements.resultSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
@@ -349,7 +341,6 @@ async function initializeApp() {
     initializeElements();
     setupEventListeners();
     initializeTheme();
-    loadHistory();
     
     updateAnalyzeButton();
     
@@ -398,99 +389,6 @@ function handleThemeToggle() {
     log(`Theme switched to: ${newTheme}`);
 }
 
-function addToHistory(text, sentiment, confidence, timestamp) {
-    const historyItem = {
-        text: text.substring(0, 100) + (text.length > 100 ? '...' : ''),
-        fullText: text,
-        sentiment,
-        confidence,
-        timestamp
-    };
-    
-    state.analysisHistory.unshift(historyItem);
-    
-    if (state.analysisHistory.length > CONFIG.HISTORY_MAX_ITEMS) {
-        state.analysisHistory = state.analysisHistory.slice(0, CONFIG.HISTORY_MAX_ITEMS);
-    }
-    
-    saveHistory();
-    renderHistory();
-}
-
-function saveHistory() {
-    try {
-        localStorage.setItem('analysisHistory', JSON.stringify(state.analysisHistory));
-    } catch (error) {
-        logError('Failed to save history', error);
-    }
-}
-
-function loadHistory() {
-    try {
-        const saved = localStorage.getItem('analysisHistory');
-        if (saved) {
-            state.analysisHistory = JSON.parse(saved);
-            renderHistory();
-        }
-    } catch (error) {
-        logError('Failed to load history', error);
-        state.analysisHistory = [];
-    }
-}
-
-function renderHistory() {
-    if (state.analysisHistory.length === 0) {
-        elements.historyList.innerHTML = '<p class="text-slate-500 dark:text-slate-400 text-sm">まだ分析履歴がありません</p>';
-        return;
-    }
-    
-    const historyHTML = state.analysisHistory.map((item, index) => {
-        const confidencePercent = Math.round(item.confidence * 100);
-        const sentimentClass = item.sentiment === 'ポジティブ' ? 'sentiment-positive' : 'sentiment-negative';
-        const timeStr = new Date(item.timestamp).toLocaleString('ja-JP');
-        
-        return `
-            <div class="history-item" tabindex="0" role="button" data-index="${index}" aria-label="履歴項目: ${item.text}">
-                <div class="flex justify-between items-start gap-3">
-                    <div class="flex-1 min-w-0">
-                        <p class="text-sm text-slate-700 dark:text-slate-300 truncate">${item.text}</p>
-                        <p class="text-xs text-slate-500 dark:text-slate-400 mt-1">${timeStr}</p>
-                    </div>
-                    <div class="flex items-center gap-2 flex-shrink-0">
-                        <span class="inline-flex items-center px-2 py-1 rounded text-xs font-medium border ${sentimentClass}">${item.sentiment}</span>
-                        <span class="text-xs text-slate-500 dark:text-slate-400">${confidencePercent}%</span>
-                    </div>
-                </div>
-            </div>
-        `;
-    }).join('');
-    
-    elements.historyList.innerHTML = historyHTML;
-    
-    elements.historyList.querySelectorAll('.history-item').forEach(item => {
-        item.addEventListener('click', handleHistoryItemClick);
-        item.addEventListener('keydown', handleHistoryItemKeydown);
-    });
-}
-
-function handleHistoryItemClick(event) {
-    const index = parseInt(event.currentTarget.dataset.index);
-    const historyItem = state.analysisHistory[index];
-    if (historyItem) {
-        elements.textInput.value = historyItem.fullText;
-        elements.textInput.focus();
-        handleTextInput({ target: elements.textInput });
-        
-        elements.textInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    }
-}
-
-function handleHistoryItemKeydown(event) {
-    if (event.key === 'Enter' || event.key === ' ') {
-        event.preventDefault();
-        handleHistoryItemClick(event);
-    }
-}
 
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);

@@ -36,19 +36,6 @@
     @apply bg-rose-500 dark:bg-rose-400;
 }
 
-/* History item styling */
-.history-item {
-    @apply p-3 rounded-lg border border-slate-200 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700 cursor-pointer transition-colors duration-150;
-}
-
-.history-item:hover {
-    @apply shadow-sm;
-}
-
-/* Focus styles for better accessibility */
-.history-item:focus {
-    @apply outline-none ring-2 ring-blue-500 ring-offset-2 dark:ring-offset-slate-800;
-}
 
 /* Smooth transitions */
 * {
