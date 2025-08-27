@@ -1,5 +1,5 @@
-# Fly.io configuration for Japanese Sentiment Analysis Frontend
-app = "japanese-sentiment-frontend"
+# Fly.io configuration for Japanese Sentiment Analysis Frontend - Staging
+app = "japanese-sentiment-frontend-staging"
 primary_region = "nrt"
 
 [build]
@@ -14,10 +14,11 @@ primary_region = "nrt"
   auto_start_machines = true
   min_machines_running = 1
   processes = ["web"]
+
 [vm]
   cpu_kind = "shared"
   cpus = 1
-  memory_mb = 512
+  memory_mb = 256
 
 [processes]
   web = "nginx -g 'daemon off;'"
