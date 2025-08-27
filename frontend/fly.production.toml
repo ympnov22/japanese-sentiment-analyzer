@@ -1,0 +1,26 @@
+# Fly.io configuration for Japanese Sentiment Analysis Frontend - Production
+app = "japanese-sentiment-frontend"
+primary_region = "nrt"
+
+[build]
+  [build.args]
+    BUILD_ENV = "production"
+
+[env]
+  PORT = "8080"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "stop"
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["web"]
+
+[vm]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[processes]
+  web = "nginx -g 'daemon off;'"

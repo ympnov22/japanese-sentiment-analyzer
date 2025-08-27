@@ -1,6 +1,6 @@
 FROM nginx:alpine
 
-# Copy frontend files
+# Copy frontend files directly
 COPY . /usr/share/nginx/html/
 
 # Remove default nginx configuration
