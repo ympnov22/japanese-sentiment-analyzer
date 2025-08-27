@@ -49,10 +49,16 @@ async function loadConfig() {
     try {
         if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
             CONFIG.API_BASE_URL = 'http://localhost:8000';
+        } else if (window.location.hostname === 'japanese-sentiment-frontend-staging.fly.dev') {
+            CONFIG.API_BASE_URL = 'https://japanese-sentiment-analyzer-staging.fly.dev';
         } else {
             CONFIG.API_BASE_URL = 'https://japanese-sentiment-analyzer.fly.dev';
         }
         log('Configuration loaded', CONFIG);
+        
+        if (CONFIG.API_BASE_URL.includes('staging')) {
+            console.log(`[STAGING] API Base URL: ${CONFIG.API_BASE_URL}`);
+        }
     } catch (error) {
         logError('Failed to load configuration', error);
         CONFIG.API_BASE_URL = 'http://localhost:8000'; // Fallback
